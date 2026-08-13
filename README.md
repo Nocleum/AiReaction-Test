@@ -1,136 +1,96 @@
-# AiReaction Test
+<h1 align="center">⚡ AiReaction Test</h1>
 
-A modern, feature-rich reaction time testing tool built as a single HTML file. Test your visual and audio reaction speeds with customizable settings, track your progress over time, and compete with daily challenges.
+<p align="center">
+  <strong>A blazing-fast, zero-dependency reaction time laboratory contained entirely within a single HTML file.</strong><br>
+  Test your visual and audio reflexes, build daily streaks, and analyze your performance over time.
+</p>
 
-![Main Interface](./screenshots/main-interface.png)
+<p align="center">
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white" alt="HTML5">
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white" alt="CSS3">
+  <img src="https://img.shields.io/badge/Vanilla_JS-F7DF1E?style=flat-square&logo=javascript&logoColor=black" alt="JavaScript">
+  <img src="https://img.shields.io/badge/Dependencies-None-success?style=flat-square" alt="No Dependencies">
+  <img src="https://img.shields.io/badge/Offline-Ready-success?style=flat-square" alt="Offline Ready">
+  <img src="https://img.shields.io/badge/Privacy-100%25_Local-blue?style=flat-square" alt="Privacy First">
+</p>
 
-## Features
-
-### 🎯 Core Functionality
-- **Visual Mode**: React to color changes on the screen
-- **Audio Mode**: React to sound signals (with eyes closed)
-- **Customizable Delay**: Set minimum and maximum signal delay (500ms–20000ms)
-- **Reaction Boundaries**: Define what counts as a valid reaction (75–300ms by default)
-- **Outlier Detection**: Automatically identifies too-fast or too-slow reactions
-
-### 📊 Session Statistics
-Track your performance in real-time:
-- Number of attempts
-- Best result
-- Average reaction time
-- Median reaction time
-- Standard deviation
-- Last result with trend indicator
-- Live histogram distribution
-
-### 🔥 Daily Challenge
-Compete with yourself every day:
-- Complete 5 attempts per day
-- Track your daily streak
-- View your personal best for the day
-- See progress bar for daily completion
-- Browse history of past daily challenges
-- Compare last 7 days performance at a glance
-
-### 🌈 Color Themes
-Choose from multiple interface palettes:
-- Classic (default blue/red/green)
-- Monochrome (Black & White)
-- Ocean
-- Sunset
-- Neon
-- Toxic Green
-- Custom theme editor
-
-### 📈 Global Statistics
-Advanced analytics across all sessions:
-- Active days counter
-- Overall average reaction time
-- Total attempts count
-- Standard deviation
-- Filterable by mode (Visual/Audio/Both)
-- Time period selection (7/30/90 days, all time, custom range)
-- Detailed period statistics with histograms
-- CSV export/import functionality
-
-![Global Statistics](./screenshots/global-stats.png)
-
-### ⚙️ Customizable Settings
-Fine-tune your testing experience:
-- **Signal Delay**: Min/max waiting time before the signal
-- **Reaction Boundaries**: Define valid reaction time range
-- **Histogram Range**: Set min/max values and number of bins for session histogram
-
-## Usage
-
-### Quick Start
-1. Open `reaction_test.html` in any modern web browser
-2. Click anywhere on the screen to start
-3. Wait for the green signal (or sound in audio mode)
-4. Click as fast as you can!
-5. View your results and continue testing
-
-### Keyboard Shortcuts
-- **Esc**: Stop current attempt
-- **Click**: Interact with the test area
-
-### Modes Explained
-
-#### Visual Mode
-The screen changes from red (waiting) to green (ready). Click when you see green!
-
-#### Audio Mode
-Listen for an audio beep. Perfect for testing pure reaction time without visual cues.
-
-## Installation
-
-No installation required! This is a standalone HTML file that runs entirely in your browser.
-
-1. Download or clone this repository
-2. Open `reaction_test.html` in Chrome, Firefox, Safari, or Edge
-3. That's it!
-
-## Technical Details
-
-- **Single File**: Everything (HTML, CSS, JavaScript) is contained in one file
-- **No Dependencies**: Works offline without any external libraries
-- **Local Storage**: All your data is saved locally in browser storage
-- **Responsive Design**: Adapts to different screen sizes
-- **Privacy First**: No data leaves your device
-
-## Data Management
-
-### Export Data
-You can export your global statistics to CSV format for backup or analysis.
-
-### Import Data
-Restore your progress from a previously exported CSV file.
-
-### Reset Options
-- **Reset Session**: Clear current session statistics (histogram data preserved)
-- **Reset Global Data**: Delete all saved results and history (use with caution!)
-
-## Browser Compatibility
-
-Works on all modern browsers:
-- ✅ Google Chrome
-- ✅ Mozilla Firefox
-- ✅ Microsoft Edge
-- ✅ Safari
-- ✅ Opera
-
-## Tips for Better Results
-
-1. **Rest your eyes** before testing in visual mode
-2. **Use audio mode** for testing pure reflexes
-3. **Complete daily challenges** consistently to track long-term improvement
-4. **Adjust boundaries** if you get many outlier results
-5. **Compare modes** to see if you're faster with visual or audio cues
-
-## License
-
-This project is provided as-is for educational and personal use.
+<p align="center">
+  <img src="./screenshots/main-interface.png" alt="Main Interface" width="700">
+</p>
 
 ---
 
-**Built with ❤️ as a vibe-coded HTML super-file**
+## ✨ Key Features
+
+### 🎯 Core Testing Engine
+- **Dual Modes**: Test **Visual** reflexes (color changes) or pure **Audio** reflexes (synthesized beeps via Web Audio API).
+- **Smart Outlier Detection**: Automatically flags anticipatory clicks (too fast) or distracted delays (too slow) based on customizable boundaries.
+- **Dynamic Delays**: Randomized signal delays (500ms–20,000ms) to prevent rhythm-guessing.
+
+### 📊 Deep Analytics
+- **Real-Time Session Stats**: Track attempts, best/average/median times, standard deviation, and trend indicators.
+- **Live Histograms**: Visualize your reaction distribution on the fly with customizable bins and ranges.
+- **Global Statistics Dashboard**: Filter historical data by mode (Visual/Audio/Combined) and timeframes (7, 30, 90 days, All-Time, or Custom ranges).
+
+### 🔥 Daily Challenges
+- **The 5-Attempt Gauntlet**: Complete 5 valid attempts to lock in your daily score.
+- **Streak Tracking**: Build and maintain daily consistency streaks (🔥).
+- **Historical Leaderboard**: Browse your past daily averages and highlight your all-time personal bests.
+
+### 🎨 Customization & Themes
+- **6 Built-in Palettes**: Classic, Monochrome, Ocean, Sunset, Neon, and Toxic Green.
+- **Custom Theme Editor**: Fine-tune the exact hex codes for waiting, ready, outlier, and idle states.
+- **Collapsible UI**: Hide settings and stats panels to maximize your focus area.
+
+### 💾 Data Management
+- **CSV Export/Import**: Back up your global history or transfer your data between devices.
+- **Granular Resets**: Clear just your current session, or nuke your entire global history (while preserving your UI settings).
+
+---
+
+## 🚀 Quick Start
+
+Because it's a single file, there is **no build step, no npm install, and no server required**.
+
+1. Download `reaction_test.html` (or clone this repository).
+2. Double-click the file to open it in any modern web browser (Chrome, Firefox, Safari, Edge).
+3. Click the main screen (or press `Space`) to begin.
+4. Wait for the signal and react as fast as you can!
+
+---
+
+## ⌨️ Controls & Shortcuts
+
+| Action | Control | Description |
+| :--- | :--- | :--- |
+| **Start / Click** | `Left Click` or `Spacebar` | Interact with the test area or advance to the next attempt. |
+| **Cancel Attempt** | `Esc` | Abort the current waiting phase and return to the idle state. |
+
+---
+
+## 🛠️ Technical Highlights
+
+- **📄 Single-File Architecture**: HTML, CSS, and JS are seamlessly integrated into one portable file. Perfect for USB drives, offline use, or quick sharing.
+- **🔒 Privacy First**: 100% of your data is stored in your browser's `LocalStorage`. Absolutely no telemetry, tracking, or external network requests.
+- **🎵 Web Audio API**: Audio mode doesn't rely on external `.mp3` or `.wav` files. Beeps are synthesized mathematically in real-time for zero-latency playback.
+- **📱 Responsive Design**: Fully adapts to mobile, tablet, and ultrawide desktop monitors.
+
+---
+
+## 💡 Pro-Tips for Better Results
+
+1. **Eliminate Visual Bias**: Use **Audio Mode** with your eyes closed to test pure neurological reflexes without the processing time of visual cortex interpretation.
+2. **Mind the Boundaries**: If you frequently get "Outlier" warnings, adjust the *Reaction Boundaries* in the settings panel to match your natural baseline.
+3. **Hardware Matters**: For the most accurate results, use a wired mouse and a high-refresh-rate monitor. Bluetooth mice and trackpads can introduce 10-30ms of input lag.
+4. **Warm Up**: Your first few attempts will likely be outliers. Do a casual session before starting your "Daily Challenge".
+
+---
+
+## 📂 File Structure
+
+```text
+📁 AiReaction-Test
+ ┣ 📄 reaction_test.html   # The entire application
+ ┗ 📁 screenshots/         # Images for this README
+    ┣ 🖼️ main-interface.png
+    ┗ 🖼️ global-stats.png
