@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест скорости реакции</title>
+    <style>
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none; -webkit-user-select: none;
+            -moz-user-select: none; -ms-user-select: none;
+        }
+        body { overflow: hidden; }
+        #reactionTest {
+            width: 100vw; height: 100vh; display: flex;
+            flex-direction: column; justify-content: center; align-items: center;
+            cursor: pointer; background-color: #0066cc;
+        }
+        #reactionTest.waiting { background-color: #ff0000; }
+        #reactionTest.ready { background-color: #00ff00; }
+        #reactionTest.too-early, #reactionTest.outlier { background-color: #ff6600; }
+        
+        .left-panels {
+            position: absolute; top: 20px; left: 20px;
+            z-index: 10;
+        }
+        
+        .right-panels {
+            position: absolute; top: 20px; right: 20px;
+            display: flex; flex-direction: column; gap: 15px;
+            z-index: 10; max-height: calc(100vh - 40px);
+            overflow-y: scroll; padding-right: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.35) rgba(255, 255, 255, 0.0);
+        }
+        .right-panels::-webkit-scrollbar { width: 6px; }
+        .right-panels::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .right-panels::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+        .right-panels::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.5); }
+        
+        .panel {
+            background-color: rgba(0, 0, 0, 0.8); padding: 15px;
+            border-radius: 10px; width: 320px; color: white;
+            border: 2px solid white; transition: all 0.3s ease;
+        }
+        
+        .panel.collapsed { padding: 10px 15px; }
+        .panel.collapsed .panel-content { display: none; }
+        
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; border-bottom: 1px solid white; padding-bottom: 5px;
+        }
+        .panel.collapsed .panel-header { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .panel-header h3 { color: white; font-size: 1.1rem; margin: 0; }
+        
+        .panel-toggle {
+            background: transparent; border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white; border-radius: 4px; width: 28px; height: 28px;
+            font-size: 1rem; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; padding: 0;
+            transition: all 0.2s ease;
+        }
+        .panel-toggle:hover { background: rgba(255, 255, 255, 0.2); border-color: white; }
+        .panel.collapsed .panel-toggle { transform: rotate(180deg); }
+        
+        .setting-group { margin-bottom: 15px; }
+        .setting-group:last-child { margin-bottom: 0; }
+        .setting-group > label { display: block; margin-bottom: 6px; font-size: 0.9rem; }
+        .radio-group { display: flex; gap: 10px; }
+        .radio-group input[type="radio"] { display: none; }
+        .radio-label {
+            padding: 5px 15px; background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 5px; cursor: pointer; font-size: 0.85rem;
+        }
+        .radio-label:hover { background: rgba(255, 255, 255, 0.3); }
+        .radio-group input[type="radio"]:checked + .radio-label,
+        .radio-label.selected {
+            background: rgba(255, 255, 255, 0.9); color: #000; border-color: white;
+        }
+        .palette-select {
+            width: 100%; padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 5px; color: white;
+            font-size: 0.9rem; cursor: pointer;
+            font-family: inherit;
+        }
+        .palette-select option { background: #222; color: white; }
+        .palette-preview { display: flex; gap: 6px; margin-top: 10px; }
+        .palette-swatch {
+            flex: 1; height: 26px; border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: background-color 0.2s ease;
+        }
+        .edit-theme-btn {
+            width: 100%; margin-top: 10px; padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 5px; color: white; cursor: pointer;
+            font-size: 0.85rem; font-family: inherit;
+            display: none;
+        }
+        .edit-theme-btn.visible { display: block; }
+        .edit-theme-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        
+        .delay-inputs, .bounds-inputs, .histogram-inputs { display: flex; gap: 8px; align-items: center; }
+        .delay-inputs input[type="number"],
+        .bounds-inputs input[type="number"],
+        .histogram-inputs input[type="number"] {
+            flex: 1; min-width: 0; padding: 6px 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 5px; color: white;
+            font-size: 0.85rem; font-family: inherit;
+            text-align: center; font-variant-numeric: tabular-nums;
+            -moz-appearance: textfield;
+        }
+        .delay-inputs input[type="number"]::-webkit-outer-spin-button,
+        .delay-inputs input[type="number"]::-webkit-inner-spin-button,
+        .bounds-inputs input[type="number"]::-webkit-outer-spin-button,
+        .bounds-inputs input[type="number"]::-webkit-inner-spin-button,
+        .histogram-inputs input[type="number"]::-webkit-outer-spin-button,
+        .histogram-inputs input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
+        .delay-inputs input[type="number"]:focus,
+        .bounds-inputs input[type="number"]:focus,
+        .histogram-inputs input[type="number"]:focus {
+            outline: none; border-color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .delay-sep, .bounds-sep, .histogram-sep { color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; flex-shrink: 0; padding: 0 2px; }
+        .delay-unit, .bounds-unit, .histogram-unit { color: rgba(255, 255, 255, 0.6); font-size: 0.75rem; flex-shrink: 0; margin-left: -4px; }
+        
+        .message {
+            font-size: 3.5rem; font-weight: bold; color: white;
+            text-align: center; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            padding: 20px; border-radius: 15px;
+            background-color: rgba(0, 0, 0, 0.2); max-width: 90%;
+        }
+        #reactionTest.ready .message {
+            color: black; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
+        }
+        .result {
+            font-size: 2.5rem; margin-top: 30px; padding: 20px 40px;
+            border-radius: 10px; background-color: rgba(0, 0, 0, 0.2);
+            color: white; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+        
+        .stats-table { width: 100%; border-collapse: collapse; }
+        .stats-table tr { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+        .stats-table tr:last-child { border-bottom: none; }
+        .stats-table td { padding: 6px 2px; font-size: 0.9rem; vertical-align: middle; }
+        .stats-table td.label { color: rgba(255, 255, 255, 0.85); white-space: nowrap; }
+        .stats-table td.val {
+            text-align: right; font-weight: bold; color: #00ff00;
+            font-variant-numeric: tabular-nums; width: 70px; padding-left: 10px;
+        }
+        .stats-table td.trend-cell { width: 22px; text-align: center; padding-left: 6px; }
+        .trend { font-size: 1rem; font-weight: bold; }
+        .trend.up { color: #ff4444; }
+        .trend.down { color: #44ff44; }
+        .trend.same { color: #aaaaaa; }
+        .stats-actions {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;
+            padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .stats-btn {
+            flex: 1 1 auto; padding: 6px 8px; font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 4px; color: white; cursor: pointer;
+            font-family: inherit;
+        }
+        .stats-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        .stats-btn.active { background: rgba(0, 255, 0, 0.3); border-color: #00ff00; }
+        
+        .daily-panel-stats {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+            margin-bottom: 10px;
+        }
+        .daily-stat-box {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 5px; padding: 8px;
+            text-align: center;
+        }
+        .daily-stat-box .label {
+            font-size: 0.72rem; color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .daily-stat-box .value {
+            font-size: 1.1rem; font-weight: bold; color: #00ff00;
+            font-variant-numeric: tabular-nums; margin-top: 2px;
+        }
+        .daily-stat-box .value.gold { color: #ffd700; }
+        .daily-stat-box .value.streak { color: #ff9933; }
+        
+        .daily-progress {
+            margin-top: 10px; padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px; font-size: 0.85rem;
+        }
+        .daily-progress-bar {
+            height: 6px; background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px; margin-top: 5px; overflow: hidden;
+        }
+        .daily-progress-fill { height: 100%; background: #00ff00; transition: width 0.3s ease; }
+        
+        .last-7-days {
+            margin-top: 10px; padding: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 5px;
+        }
+        .last-7-days-title {
+            font-size: 0.75rem; color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .last-7-days-bars {
+            display: flex; gap: 4px; align-items: flex-end;
+            height: 50px;
+        }
+        .last-7-day {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; gap: 2px; height: 100%;
+            justify-content: flex-end;
+        }
+        .last-7-day-bar {
+            width: 100%; background: #00ff00; border-radius: 2px 2px 0 0;
+            min-height: 2px; transition: height 0.3s ease;
+        }
+        .last-7-day-label {
+            font-size: 0.65rem; color: rgba(255, 255, 255, 0.5);
+            font-variant-numeric: tabular-nums;
+        }
+        .last-7-day.empty .last-7-day-bar { background: rgba(255, 255, 255, 0.15); }
+        
+        .daily-actions {
+            display: flex; gap: 6px; margin-top: 10px;
+            padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .daily-actions-row {
+            display: flex; gap: 6px; margin-top: 6px;
+        }
+        
+        .histogram-bars {
+            display: flex; align-items: flex-end; gap: 4px;
+            height: 140px; padding-bottom: 22px; padding-top: 20px;
+            position: relative;
+        }
+        .histogram-bar {
+            flex: 1; background: #00ff00;
+            border-radius: 3px 3px 0 0;
+            min-height: 2px; position: relative;
+            transition: height 0.3s ease, background 0.2s ease;
+        }
+        .histogram-bar:hover { background: #66ff66; }
+        .histogram-bar-count {
+            position: absolute; top: -18px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.72rem; color: white;
+            font-variant-numeric: tabular-nums;
+        }
+        .histogram-labels {
+            position: relative;
+            display: flex;
+            font-size: 0.65rem; color: rgba(255, 255, 255, 0.7);
+            font-variant-numeric: tabular-nums;
+            padding-top: 5px;
+        }
+        .histogram-labels span {
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
+            padding: 0 1.25px;
+            transform: rotate(-45deg);
+            transform-origin: top left;
+            display: block;
+            width: 100%;
+        }
+        
+        .global-stats-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+            margin-bottom: 15px;
+        }
+        .global-stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px; padding: 12px;
+            text-align: center;
+        }
+        .global-stat-card .label {
+            font-size: 0.75rem; color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .global-stat-card .value {
+            font-size: 1.3rem; font-weight: bold; color: #00ff00;
+            font-variant-numeric: tabular-nums;
+        }
+        .global-stat-card .value.blue { color: #00ccff; }
+        
+        .mode-filter {
+            display: flex; gap: 4px; margin-bottom: 12px;
+            padding: 3px; background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+        }
+        .mode-filter-btn {
+            flex: 1; padding: 6px 8px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px; color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem; cursor: pointer;
+            font-family: inherit; transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .mode-filter-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .mode-filter-btn.active {
+            background: rgba(0, 255, 0, 0.25);
+            border-color: rgba(0, 255, 0, 0.5);
+            color: white; font-weight: 600;
+        }
+        .mode-filter-btn .mode-count {
+            display: inline-block; margin-left: 3px;
+            font-size: 0.7rem; color: rgba(255, 255, 255, 0.5);
+            font-weight: normal;
+        }
+        .mode-filter-btn.active .mode-count {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .period-selector {
+            display: flex; gap: 6px; margin-bottom: 15px; flex-wrap: wrap;
+        }
+        .period-btn {
+            flex: 1; min-width: 80px; padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px; color: white;
+            font-size: 0.8rem; cursor: pointer;
+            font-family: inherit;
+        }
+        .period-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        .period-btn.active {
+            background: rgba(0, 255, 0, 0.3);
+            border-color: #00ff00;
+        }
+        
+        .period-stats-form {
+            display: flex; flex-direction: column; gap: 12px;
+            margin-bottom: 15px;
+        }
+        .form-row {
+            display: flex; gap: 10px; align-items: center;
+        }
+        .form-row label {
+            min-width: 120px; font-size: 0.9rem;
+        }
+        .form-row input[type="datetime-local"] {
+            flex: 1; padding: 8px; background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 5px;
+            color: white; font-size: 0.9rem; font-family: inherit;
+            color-scheme: dark;
+        }
+        .form-row input[type="datetime-local"]:focus {
+            outline: none; border-color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .period-stats-result {
+            margin-top: 15px; padding: 15px;
+            background: rgba(255, 255, 255, 0.08); border-radius: 6px;
+        }
+        .period-stats-result h4 {
+            margin-bottom: 10px; font-size: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3); padding-bottom: 5px;
+        }
+        .period-stats-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+        }
+        .period-stat-item {
+            display: flex; justify-content: space-between; padding: 5px 0;
+        }
+        .period-stat-label { color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; }
+        .period-stat-value { font-weight: bold; color: #00ff00; font-variant-numeric: tabular-nums; }
+        .global-stats-actions {
+            display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;
+            padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .global-stats-actions .btn { flex: 1; min-width: 120px; }
+        
+        .global-histogram {
+            margin-top: 15px; padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+        }
+        .global-histogram h4 {
+            margin-bottom: 10px; font-size: 0.95rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 5px;
+        }
+        
+        .controls {
+            position: absolute; bottom: 20px; left: 50%;
+            transform: translateX(-50%); display: flex; gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px; font-size: 0.9rem; font-weight: 600;
+            border: 2px solid white; border-radius: 5px; cursor: pointer;
+            background-color: rgba(0, 0, 0, 0.8); color: white;
+        }
+        .btn:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn.danger {
+            background-color: rgba(255, 80, 80, 0.3);
+            border-color: #ff6666;
+        }
+        .btn.danger:hover { background-color: rgba(255, 80, 80, 0.5); }
+        .btn.small {
+            padding: 6px 10px; font-size: 0.8rem; font-weight: 500;
+        }
+        
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none; justify-content: center; align-items: center;
+            z-index: 100;
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal {
+            background: rgba(20, 20, 20, 0.95);
+            border: 2px solid white; border-radius: 10px;
+            padding: 20px; max-width: 650px; width: 90%;
+            max-height: 85vh; overflow-y: auto; color: white;
+        }
+        .modal h2 {
+            margin-bottom: 15px; font-size: 1.3rem;
+            border-bottom: 1px solid white; padding-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-close {
+            background: transparent; border: none; color: white;
+            font-size: 1.5rem; cursor: pointer; line-height: 1; padding: 0 5px;
+        }
+        .modal-close:hover { color: #ff4444; }
+        .modal-body { line-height: 1.5; margin-bottom: 20px; }
+        .modal-actions {
+            display: flex; gap: 10px; justify-content: flex-end;
+        }
+        
+        .history-list { list-style: none; }
+        .history-item {
+            padding: 10px; margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.08); border-radius: 6px;
+            display: flex; justify-content: space-between;
+            align-items: center; gap: 10px;
+            border-left: 3px solid #00ff00;
+        }
+        .history-item.best { border-left-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
+        .history-date { font-size: 0.85rem; color: rgba(255, 255, 255, 0.9); }
+        .history-time { font-size: 0.75rem; color: rgba(255, 255, 255, 0.55); }
+        .history-avg { font-size: 1.1rem; font-weight: bold; color: #00ff00; font-variant-numeric: tabular-nums; }
+        .history-item.best .history-avg { color: #ffd700; }
+        .history-empty { text-align: center; padding: 30px; color: rgba(255, 255, 255, 0.5); }
+        
+        .daily-result-big { text-align: center; padding: 20px; }
+        .daily-result-big .big-number {
+            font-size: 3rem; font-weight: bold; color: #00ff00;
+            margin: 10px 0; font-variant-numeric: tabular-nums;
+        }
+        .daily-result-big .comparison { font-size: 1rem; margin-top: 10px; color: rgba(255, 255, 255, 0.8); }
+        .daily-result-big .comparison.new-record { color: #ffd700; font-weight: bold; }
+        
+        .import-file-input { display: none; }
+        
+        .custom-theme-editor {
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        .color-picker-group {
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .color-picker-item {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .color-picker-item label {
+            flex: 1; font-size: 0.9rem;
+        }
+        .color-picker-wrapper {
+            position: relative; width: 50px; height: 34px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 5px; overflow: hidden; cursor: pointer;
+            background: rgba(255, 255, 255, 0.05);
+            transition: border-color 0.2s ease;
+            flex-shrink: 0;
+        }
+        .color-picker-wrapper:hover {
+            border-color: white;
+        }
+        .color-picker-preview {
+            position: absolute; inset: 2px;
+            border-radius: 2px;
+            transition: background-color 0.2s ease;
+        }
+        .color-picker-wrapper input[type="color"] {
+            position: absolute;
+            top: -10px; left: -10px;
+            width: calc(100% + 20px);
+            height: calc(100% + 20px);
+            border: none; cursor: pointer;
+            opacity: 0;
+        }
+        .color-picker-value {
+            font-size: 0.8rem; color: rgba(255, 255, 255, 0.7);
+            font-family: 'Consolas', 'Monaco', monospace;
+            min-width: 70px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+        .theme-actions {
+            display: flex; gap: 10px; margin-top: 10px;
+        }
+        
+        .comparison-table {
+            width: 100%; border-collapse: collapse; margin-top: 15px;
+        }
+        .comparison-table th, .comparison-table td {
+            padding: 8px 6px; text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 0.85rem;
+        }
+        .comparison-table th {
+            color: rgba(255, 255, 255, 0.6); font-weight: 600;
+            font-size: 0.75rem; text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .comparison-table td.val {
+            font-weight: bold; color: #00ff00;
+            font-variant-numeric: tabular-nums;
+        }
+        .comparison-table tr.highlight {
+            background: rgba(0, 255, 0, 0.08);
+        }
+        
+        @media (max-width: 768px) {
+            .message { font-size: 2.5rem; }
+            .result { font-size: 2rem; }
+            .left-panels, .right-panels {
+                position: relative; top: auto; left: auto; right: auto;
+                margin: 20px; width: calc(100% - 40px);
+            }
+            .panel { width: 100%; }
+            body { overflow-y: auto; }
+            #reactionTest { height: auto; min-height: 60vh; }
+            .controls {
+                position: relative; bottom: auto; left: auto;
+                transform: none; margin-top: 20px; margin-bottom: 20px;
+            }
+            .histogram-bars { height: 110px; }
+            .global-stats-grid { grid-template-columns: 1fr; }
+            .histogram-labels span {
+                transform: rotate(0deg);
+                font-size: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="left-panels">
+        <div class="panel" id="settingsPanel">
+            <div class="panel-header">
+                <h3>Настройки</h3>
+                <button class="panel-toggle" data-panel="settingsPanel" title="Свернуть/развернуть панель">▼</button>
+            </div>
+            <div class="panel-content">
+                <div class="setting-group">
+                    <label>Режим теста:</label>
+                    <div class="radio-group">
+                        <input type="radio" id="visual" name="mode" value="visual" checked>
+                        <label for="visual" class="radio-label">Визуальный</label>
+                        <input type="radio" id="audio" name="mode" value="audio">
+                        <label for="audio" class="radio-label">Звуковой</label>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label for="paletteSelect">Цветовая палитра:</label>
+                    <select id="paletteSelect" class="palette-select" title="Выберите цветовую схему интерфейса">
+                        <option value="original">Классика</option>
+                        <option value="monochrome">Чёрный и Белый</option>
+                        <option value="ocean">Море</option>
+                        <option value="sunset">Закат</option>
+                        <option value="neon">Неон</option>
+                        <option value="toxicGreen">Зеленый Яд</option>
+                        <option value="custom">Своя тема</option>
+                    </select>
+                    <div class="palette-preview">
+                        <div class="palette-swatch" id="swatchWait" title="Ожидание сигнала"></div>
+                        <div class="palette-swatch" id="swatchReady" title="Сигнал (нажатие)"></div>
+                        <div class="palette-swatch" id="swatchEarly" title="Слишком рано / Выброс"></div>
+                        <div class="palette-swatch" id="swatchIdle" title="Простой / Результат"></div>
+                    </div>
+                    <button class="edit-theme-btn" id="editThemeBtn" title="Открыть редактор пользовательской темы">✎ Редактировать тему</button>
+                </div>
+                <div class="setting-group">
+                    <label>Задержка сигнала:</label>
+                    <div class="delay-inputs">
+                        <input type="number" id="delayMin" min="500" max="10000" step="100" value="2000" aria-label="Минимальная задержка" title="Минимальная задержка перед сигналом. Допустимо: 500–10000 мс. Шаг: 100 мс.">
+                        <span class="delay-sep">—</span>
+                        <input type="number" id="delayMax" min="500" max="20000" step="100" value="6000" aria-label="Максимальная задержка" title="Максимальная задержка перед сигналом. Допустимо: 500–20000 мс. Должно быть ≥ минимума + 500 мс.">
+                        <span class="delay-unit">мс</span>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label>Границы реакции:</label>
+                    <div class="bounds-inputs">
+                        <input type="number" id="boundMin" min="0" max="125" step="5" value="75" aria-label="Минимальная граница" title="Минимальная граница реакции. Допустимо: 0–125 мс. Шаг: 5 мс. Результаты ниже — считаются выбросами.">
+                        <span class="bounds-sep">—</span>
+                        <input type="number" id="boundMax" min="270" max="500" step="5" value="300" aria-label="Максимальная граница" title="Максимальная граница реакции. Допустимо: 270–500 мс. Шаг: 5 мс. Результаты выше — считаются выбросами.">
+                        <span class="bounds-unit">мс</span>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label>Гистограмма сессии:</label>
+                    <div class="histogram-inputs">
+                        <input type="number" id="histMin" min="0" max="290" step="10" value="0" aria-label="Нижний предел гистограммы" title="Нижний предел диапазона гистограммы. Допустимо: 0–290 мс. Шаг: 10 мс.">
+                        <span class="histogram-sep">—</span>
+                        <input type="number" id="histMax" min="10" max="1000" step="10" value="300" aria-label="Верхний предел гистограммы" title="Верхний предел диапазона гистограммы. Допустимо: 10–1000 мс. Должно быть > минимума.">
+                        <span class="histogram-sep">/</span>
+                        <input type="number" id="histBins" min="5" max="15" step="1" value="10" aria-label="Количество бинов" title="Количество столбцов (бинов) гистограммы. Допустимо: 5–15.">
+                        <span class="histogram-unit">мс</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="right-panels">
+        <div class="panel" id="dailyPanel">
+            <div class="panel-header">
+                <h3>Испытание дня</h3>
+                <button class="panel-toggle" data-panel="dailyPanel" title="Свернуть/развернуть панель">▼</button>
+            </div>
+            <div class="panel-content">
+                <div class="daily-panel-stats">
+                    <div class="daily-stat-box">
+                        <div class="label">Серия</div>
+                        <div class="value streak" id="dailyStreakValue">0 🔥</div>
+                    </div>
+                    <div class="daily-stat-box">
+                        <div class="label">Рекорд</div>
+                        <div class="value gold" id="dailyBestValue">-</div>
+                    </div>
+                </div>
+                <div class="daily-progress">
+                    <div>Сегодня: <span id="dailyCount">0</span>/5</div>
+                    <div class="daily-progress-bar"><div class="daily-progress-fill" id="dailyFill" style="width: 0%"></div></div>
+                </div>
+                <div class="last-7-days">
+                    <div class="last-7-days-title">Последние 7 дней</div>
+                    <div class="last-7-days-bars" id="last7DaysBars"></div>
+                </div>
+                <div class="daily-actions">
+                    <button class="stats-btn" id="dailyToggleBtn" title="Запустить режим ежедневного испытания (5 попыток)">Старт</button>
+                    <button class="stats-btn" id="dailyResetBtn" title="Сбросить текущие попытки сегодня">Заново</button>
+                </div>
+                <div class="daily-actions-row">
+                    <button class="stats-btn" id="historyBtn" title="Посмотреть историю ежедневных испытаний" style="width: 100%;">История</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="statsPanel">
+            <div class="panel-header">
+                <h3>Статистика сессии</h3>
+                <button class="panel-toggle" data-panel="statsPanel" title="Свернуть/развернуть панель">▼</button>
+            </div>
+            <div class="panel-content">
+                <table class="stats-table">
+                    <tr>
+                        <td class="label">Попыток</td>
+                        <td class="val" id="attemptsCount">0</td>
+                        <td class="trend-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="label">Лучший</td>
+                        <td class="val" id="bestResult">-</td>
+                        <td class="trend-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="label">Средний</td>
+                        <td class="val" id="averageResult">-</td>
+                        <td class="trend-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="label">Медиана</td>
+                        <td class="val" id="medianResult">-</td>
+                        <td class="trend-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="label">Отклонение</td>
+                        <td class="val" id="stdDevResult">-</td>
+                        <td class="trend-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="label">Последний</td>
+                        <td class="val" id="lastResult">-</td>
+                        <td class="trend-cell"><span class="trend same" id="lastTrend">=</span></td>
+                    </tr>
+                </table>
+                <div class="histogram-bars" id="histogramBars" style="height: 100px; margin-top: 15px;"></div>
+                <div class="histogram-labels" id="histogramLabels"></div>
+                <div class="stats-actions">
+                    <button class="stats-btn" id="resetSessionBtn" title="Сбросить статистику текущей сессии">Сбросить сессию</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="globalPanel">
+            <div class="panel-header">
+                <h3>Глобальная статистика</h3>
+                <button class="panel-toggle" data-panel="globalPanel" title="Свернуть/развернуть панель">▼</button>
+            </div>
+            <div class="panel-content">
+                <div class="global-stats-grid">
+                    <div class="global-stat-card">
+                        <div class="label">Активных дней</div>
+                        <div class="value" id="globalActiveDays">0</div>
+                    </div>
+                    <div class="global-stat-card">
+                        <div class="label">Средний</div>
+                        <div class="value blue" id="globalAvgResult">-</div>
+                    </div>
+                    <div class="global-stat-card">
+                        <div class="label">Всего попыток</div>
+                        <div class="value" id="globalTotalAttempts">0</div>
+                    </div>
+                    <div class="global-stat-card">
+                        <div class="label">Отклонение</div>
+                        <div class="value" id="globalStdDevResult">-</div>
+                    </div>
+                </div>
+                <div class="stats-actions">
+                    <button class="stats-btn" id="openGlobalStatsBtn" title="Открыть расширенную статистику" style="width: 100%;">Подробнее</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="reactionTest">
+        <div class="message" id="message">Нажмите для начала</div>
+        <div class="result" id="result"></div>
+    </div>
+    
+    <div class="controls">
+        <button id="stopBtn" class="btn" disabled title="Остановить текущую попытку (Esc)">Остановить</button>
+    </div>
+
+    <input type="file" id="importFileInput" class="import-file-input" accept=".csv">
+
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal">
+            <h2>История ежедневных испытаний <button class="modal-close" id="historyClose">×</button></h2>
+            <ul class="history-list" id="historyList"></ul>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="dailyResultModal">
+        <div class="modal">
+            <h2>Результат дня <button class="modal-close" id="dailyResultClose">×</button></h2>
+            <div class="daily-result-big" id="dailyResultContent"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="sessionResetModal">
+        <div class="modal">
+            <h2>Сброс сессии <button class="modal-close" id="sessionResetClose">×</button></h2>
+            <div class="modal-body">
+                Сбросить статистику текущей сессии для активного режима? Данные гистограммы за всё время останутся.
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="sessionResetCancel">Отмена</button>
+                <button class="btn danger" id="sessionResetConfirm">Сбросить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="globalStatsModal">
+        <div class="modal" style="max-width: 750px;">
+            <h2>Расширенная глобальная статистика <button class="modal-close" id="globalStatsClose">×</button></h2>
+            <div class="modal-body">
+                <div class="mode-filter" id="globalModalModeFilter">
+                    <button class="mode-filter-btn active" data-global-mode="visual" title="Статистика визуального режима">Визуальный<span class="mode-count" id="globalModalVisualCount"></span></button>
+                    <button class="mode-filter-btn" data-global-mode="audio" title="Статистика звукового режима">Звуковой<span class="mode-count" id="globalModalAudioCount"></span></button>
+                    <button class="mode-filter-btn" data-global-mode="both" title="Сравнение обоих режимов">Оба<span class="mode-count" id="globalModalBothCount"></span></button>
+                </div>
+                
+                <div class="period-selector">
+                    <button class="period-btn active" data-days="7">7 дней</button>
+                    <button class="period-btn" data-days="30">30 дней</button>
+                    <button class="period-btn" data-days="90">90 дней</button>
+                    <button class="period-btn" data-days="all">Всё время</button>
+                    <button class="period-btn" data-days="custom">Свой период</button>
+                </div>
+                
+                <div class="period-stats-form" id="customPeriodForm" style="display: none;">
+                    <div class="form-row">
+                        <label>Начало:</label>
+                        <input type="datetime-local" id="periodStart">
+                    </div>
+                    <div class="form-row">
+                        <label>Конец:</label>
+                        <input type="datetime-local" id="periodEnd">
+                    </div>
+                    <button class="btn" id="applyCustomPeriod" style="width: 100%;">Применить</button>
+                </div>
+                
+                <div class="period-stats-result" id="periodStatsResult">
+                    <h4 id="periodStatsTitle">Детальная статистика</h4>
+                    <div id="periodStatsBody"></div>
+                </div>
+                
+                <div class="global-histogram">
+                    <h4 id="globalHistogramTitle">Распределение результатов за период</h4>
+                    <div class="histogram-bars" id="globalHistogramBars" style="height: 120px;"></div>
+                    <div class="histogram-labels" id="globalHistogramLabels"></div>
+                </div>
+                
+                <div class="global-stats-actions">
+                    <button class="btn small" id="exportGlobalCsvBtn" title="Экспортировать все результаты в CSV">Экспорт CSV</button>
+                    <button class="btn small" id="importGlobalCsvBtn" title="Импортировать результаты из CSV">Импорт CSV</button>
+                    <button class="btn small danger" id="resetGlobalDataBtn" title="Удалить все сохранённые результаты">Сбросить данные</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="globalResetModal">
+        <div class="modal">
+            <h2>Сброс всех данных <button class="modal-close" id="globalResetClose">×</button></h2>
+            <div class="modal-body">
+                <strong style="color:#ff6666;">Внимание!</strong> Будут удалены:
+                <ul style="margin: 10px 0 10px 20px; line-height: 1.8;">
+                    <li>Все результаты тестов</li>
+                    <li>Вся история ежедневных испытаний</li>
+                </ul>
+                Настройки интерфейса и пользовательская тема <strong>сохранятся</strong>. Это действие нельзя отменить.
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="globalResetCancel">Отмена</button>
+                <button class="btn danger" id="globalResetConfirm">Удалить всё</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="customThemeModal">
+        <div class="modal">
+            <h2>Редактор темы <button class="modal-close" id="customThemeClose">×</button></h2>
+            <div class="modal-body">
+                <div class="custom-theme-editor">
+                    <div class="color-picker-group">
+                        <div class="color-picker-item">
+                            <label>Ожидание сигнала:</label>
+                            <div class="color-picker-wrapper" title="Цвет фона во время ожидания сигнала (до нажатия)">
+                                <div class="color-picker-preview" id="previewWait" style="background:#ff0000"></div>
+                                <input type="color" id="customWait" value="#ff0000">
+                            </div>
+                            <span class="color-picker-value" id="customWaitValue">#ff0000</span>
+                        </div>
+                        <div class="color-picker-item">
+                            <label>Сигнал (нажатие):</label>
+                            <div class="color-picker-wrapper" title="Цвет фона в момент появления сигнала (для визуального режима)">
+                                <div class="color-picker-preview" id="previewReady" style="background:#00ff00"></div>
+                                <input type="color" id="customReady" value="#00ff00">
+                            </div>
+                            <span class="color-picker-value" id="customReadyValue">#00ff00</span>
+                        </div>
+                        <div class="color-picker-item">
+                            <label>Слишком рано / Выброс:</label>
+                            <div class="color-picker-wrapper" title="Цвет фона при слишком раннем нажатии или результате-выбросе">
+                                <div class="color-picker-preview" id="previewEarly" style="background:#ff6600"></div>
+                                <input type="color" id="customEarly" value="#ff6600">
+                            </div>
+                            <span class="color-picker-value" id="customEarlyValue">#ff6600</span>
+                        </div>
+                        <div class="color-picker-item">
+                            <label>Простой / Результат:</label>
+                            <div class="color-picker-wrapper" title="Цвет фона в состоянии простоя и при отображении результата">
+                                <div class="color-picker-preview" id="previewIdle" style="background:#0066cc"></div>
+                                <input type="color" id="customIdle" value="#0066cc">
+                            </div>
+                            <span class="color-picker-value" id="customIdleValue">#0066cc</span>
+                        </div>
+                    </div>
+                    <div class="theme-actions">
+                        <button class="btn" id="customThemeCancel">Отмена</button>
+                        <button class="btn" id="customThemeSave">Сохранить тему</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PALETTES = {
+            original: { name: 'Классика', wait: '#ff0000', ready: '#00ff00', early: '#ff6600', idle: '#0066cc' },
+            monochrome: { name: 'Чёрный и Белый', wait: '#000000', ready: '#ffffff', early: '#888888', idle: '#333333' },
+            ocean: { name: 'Море', wait: '#003366', ready: '#00ccff', early: '#ff9933', idle: '#006699' },
+            sunset: { name: 'Закат', wait: '#8b0000', ready: '#ff69b4', early: '#ff4500', idle: '#4b0082' },
+            neon: { name: 'Неон', wait: '#ff00ff', ready: '#00ff00', early: '#ffff00', idle: '#000080' },
+            toxicGreen: { name: 'Зеленый Яд', wait: '#000000', ready: '#39ff14', early: '#335511', idle: '#0a0a0a' },
+        };
+
+        const Utils = {
+            getLuminance(hex) {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return 0.299 * r + 0.587 * g + 0.114 * b;
+            },
+            getTextColor(bgHex) {
+                return this.getLuminance(bgHex) > 140 ? 'black' : 'white';
+            },
+            calculateMedian(arr) {
+                if (arr.length === 0) return null;
+                const sorted = [...arr].sort((a, b) => a - b);
+                const mid = Math.floor(sorted.length / 2);
+                return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+            },
+            calculateStdDev(arr, mean) {
+                if (arr.length === 0) return null;
+                const squareDiffs = arr.map(value => Math.pow(value - mean, 2));
+                const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / arr.length;
+                return Math.sqrt(avgSquareDiff);
+            },
+            getDateKey(date) {
+                const d = date instanceof Date ? date : new Date(date);
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            },
+            addDays(dateKey, days) {
+                const d = new Date(dateKey + 'T00:00:00');
+                d.setDate(d.getDate() + days);
+                return this.getDateKey(d);
+            },
+            escapeCSV(val) {
+                const s = String(val);
+                if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+                    return '"' + s.replace(/"/g, '""') + '"';
+                }
+                return s;
+            },
+            toLocalDateTimeString(timestamp) {
+                const d = new Date(timestamp);
+                return d.toLocaleString('ru-RU', {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            },
+            toLocalDateTimeInputValue(date) {
+                const pad = n => String(n).padStart(2, '0');
+                return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+            }
+        };
+
+        class ReactionTest {
+            constructor() {
+                this.data = {
+                    visual: { sessionResults: [], allResults: [], dailyAttempts: [], previousAverage: null, previousLast: null },
+                    audio: { sessionResults: [], allResults: [], dailyAttempts: [], previousAverage: null, previousLast: null }
+                };
+                this.isRunning = false;
+                this.startTime = null;
+                this.timeoutId = null;
+                this.audioContext = null;
+                this.audioBuffers = {};
+                this.state = 'IDLE';
+                this.attemptId = 0;
+                this.dailyMode = false;
+                this.DAILY_REQUIRED = 5;
+                this.globalStatsPeriod = { days: 7, start: null, end: null };
+                this.globalModalMode = 'visual';
+
+                this.cacheElements();
+                this.currentPalette = 'original';
+                this.loadSettings();
+                this.loadAllResults('visual');
+                this.loadAllResults('audio');
+                this.loadCustomTheme();
+                this.loadPanelStates();
+                this.loadGlobalModalMode();
+                
+                this.attachEventListeners();
+                this.updateRadioLabels();
+                this.updateEditThemeButtonVisibility();
+                this.applyPalette();
+                this.renderHistogram();
+                this.updateResults();
+                this.updateDailyPanel();
+                this.updateGlobalModalModeCounts();
+                this.updateGlobalStatsSummary();
+                this.init();
+            }
+
+            cacheElements() {
+                this.reactionTest = document.getElementById('reactionTest');
+                this.message = document.getElementById('message');
+                this.result = document.getElementById('result');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.attemptsCountEl = document.getElementById('attemptsCount');
+                this.bestResultEl = document.getElementById('bestResult');
+                this.averageResultEl = document.getElementById('averageResult');
+                this.medianResultEl = document.getElementById('medianResult');
+                this.stdDevResultEl = document.getElementById('stdDevResult');
+                this.lastResultEl = document.getElementById('lastResult');
+                this.lastTrendEl = document.getElementById('lastTrend');
+                this.paletteSelect = document.getElementById('paletteSelect');
+                this.swatchWait = document.getElementById('swatchWait');
+                this.swatchReady = document.getElementById('swatchReady');
+                this.swatchEarly = document.getElementById('swatchEarly');
+                this.swatchIdle = document.getElementById('swatchIdle');
+                this.editThemeBtn = document.getElementById('editThemeBtn');
+                this.delayMinInput = document.getElementById('delayMin');
+                this.delayMaxInput = document.getElementById('delayMax');
+                this.boundMinInput = document.getElementById('boundMin');
+                this.boundMaxInput = document.getElementById('boundMax');
+                this.histMinInput = document.getElementById('histMin');
+                this.histMaxInput = document.getElementById('histMax');
+                this.histBinsInput = document.getElementById('histBins');
+                this.dailyToggleBtn = document.getElementById('dailyToggleBtn');
+                this.dailyResetBtn = document.getElementById('dailyResetBtn');
+                this.historyBtn = document.getElementById('historyBtn');
+                this.dailyStreakValue = document.getElementById('dailyStreakValue');
+                this.dailyBestValue = document.getElementById('dailyBestValue');
+                this.dailyCountEl = document.getElementById('dailyCount');
+                this.dailyFill = document.getElementById('dailyFill');
+                this.last7DaysBars = document.getElementById('last7DaysBars');
+                this.histogramBars = document.getElementById('histogramBars');
+                this.histogramLabels = document.getElementById('histogramLabels');
+                this.globalTotalAttempts = document.getElementById('globalTotalAttempts');
+                this.globalAvgResult = document.getElementById('globalAvgResult');
+                this.globalStdDevResult = document.getElementById('globalStdDevResult');
+                this.globalActiveDays = document.getElementById('globalActiveDays');
+                this.openGlobalStatsBtn = document.getElementById('openGlobalStatsBtn');
+                this.resetSessionBtn = document.getElementById('resetSessionBtn');
+                this.exportGlobalCsvBtn = document.getElementById('exportGlobalCsvBtn');
+                this.importGlobalCsvBtn = document.getElementById('importGlobalCsvBtn');
+                this.resetGlobalDataBtn = document.getElementById('resetGlobalDataBtn');
+                this.importFileInput = document.getElementById('importFileInput');
+                this.historyModal = document.getElementById('historyModal');
+                this.historyClose = document.getElementById('historyClose');
+                this.historyList = document.getElementById('historyList');
+                this.dailyResultModal = document.getElementById('dailyResultModal');
+                this.dailyResultClose = document.getElementById('dailyResultClose');
+                this.dailyResultContent = document.getElementById('dailyResultContent');
+                this.sessionResetModal = document.getElementById('sessionResetModal');
+                this.sessionResetClose = document.getElementById('sessionResetClose');
+                this.sessionResetCancel = document.getElementById('sessionResetCancel');
+                this.sessionResetConfirm = document.getElementById('sessionResetConfirm');
+                this.globalStatsModal = document.getElementById('globalStatsModal');
+                this.globalStatsClose = document.getElementById('globalStatsClose');
+                this.customPeriodForm = document.getElementById('customPeriodForm');
+                this.periodStart = document.getElementById('periodStart');
+                this.periodEnd = document.getElementById('periodEnd');
+                this.applyCustomPeriod = document.getElementById('applyCustomPeriod');
+                this.periodStatsResult = document.getElementById('periodStatsResult');
+                this.periodStatsTitle = document.getElementById('periodStatsTitle');
+                this.periodStatsBody = document.getElementById('periodStatsBody');
+                this.globalHistogramBars = document.getElementById('globalHistogramBars');
+                this.globalHistogramLabels = document.getElementById('globalHistogramLabels');
+                this.globalHistogramTitle = document.getElementById('globalHistogramTitle');
+                this.globalResetModal = document.getElementById('globalResetModal');
+                this.globalResetClose = document.getElementById('globalResetClose');
+                this.globalResetCancel = document.getElementById('globalResetCancel');
+                this.globalResetConfirm = document.getElementById('globalResetConfirm');
+                this.customThemeModal = document.getElementById('customThemeModal');
+                this.customThemeClose = document.getElementById('customThemeClose');
+                this.customWait = document.getElementById('customWait');
+                this.customReady = document.getElementById('customReady');
+                this.customEarly = document.getElementById('customEarly');
+                this.customIdle = document.getElementById('customIdle');
+                this.previewWait = document.getElementById('previewWait');
+                this.previewReady = document.getElementById('previewReady');
+                this.previewEarly = document.getElementById('previewEarly');
+                this.previewIdle = document.getElementById('previewIdle');
+                this.customWaitValue = document.getElementById('customWaitValue');
+                this.customReadyValue = document.getElementById('customReadyValue');
+                this.customEarlyValue = document.getElementById('customEarlyValue');
+                this.customIdleValue = document.getElementById('customIdleValue');
+                this.customThemeCancel = document.getElementById('customThemeCancel');
+                this.customThemeSave = document.getElementById('customThemeSave');
+                this.periodBtns = document.querySelectorAll('.period-btn');
+                this.globalModalModeFilter = document.getElementById('globalModalModeFilter');
+                this.globalModalVisualCount = document.getElementById('globalModalVisualCount');
+                this.globalModalAudioCount = document.getElementById('globalModalAudioCount');
+                this.globalModalBothCount = document.getElementById('globalModalBothCount');
+            }
+
+            loadSettings() {
+                try {
+                    const palette = localStorage.getItem('reactionTestPalette');
+                    if (palette && (PALETTES[palette] || palette === 'custom')) {
+                        this.currentPalette = palette;
+                        this.paletteSelect.value = palette;
+                    }
+                    const delayMin = localStorage.getItem('reactionDelayMin');
+                    const delayMax = localStorage.getItem('reactionDelayMax');
+                    const boundMin = localStorage.getItem('reactionBoundMin');
+                    const boundMax = localStorage.getItem('reactionBoundMax');
+                    const histMin = localStorage.getItem('reactionHistMin');
+                    const histMax = localStorage.getItem('reactionHistMax');
+                    const histBins = localStorage.getItem('reactionHistBins');
+                    if (delayMin) this.delayMinInput.value = delayMin;
+                    if (delayMax) this.delayMaxInput.value = delayMax;
+                    if (boundMin) this.boundMinInput.value = boundMin;
+                    if (boundMax) this.boundMaxInput.value = boundMax;
+                    if (histMin) this.histMinInput.value = histMin;
+                    if (histMax) this.histMaxInput.value = histMax;
+                    if (histBins) this.histBinsInput.value = histBins;
+                } catch (e) {}
+            }
+
+            saveSetting(key, value) {
+                try { localStorage.setItem(key, value); } catch (e) {}
+            }
+
+            loadAllResults(mode) {
+                try {
+                    const saved = localStorage.getItem('reactionAllResults_' + mode);
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            if (typeof parsed[0] === 'object') {
+                                this.data[mode].allResults = parsed;
+                            } else {
+                                this.data[mode].allResults = parsed.map(t => ({
+                                    timestamp: Date.now(),
+                                    mode: mode,
+                                    reactionTime: t
+                                }));
+                            }
+                        }
+                    }
+                } catch (e) { this.data[mode].allResults = []; }
+            }
+
+            saveAllResults(mode) {
+                try { localStorage.setItem('reactionAllResults_' + mode, JSON.stringify(this.data[mode].allResults)); } catch (e) {}
+            }
+
+            loadCustomTheme() {
+                try {
+                    const custom = localStorage.getItem('reactionCustomTheme');
+                    if (custom) {
+                        const theme = JSON.parse(custom);
+                        PALETTES.custom = theme;
+                        this.customWait.value = theme.wait;
+                        this.customReady.value = theme.ready;
+                        this.customEarly.value = theme.early;
+                        this.customIdle.value = theme.idle;
+                        this.updateColorPickerValues();
+                    } else {
+                        PALETTES.custom = { name: 'Своя тема', wait: '#ff0000', ready: '#00ff00', early: '#ff6600', idle: '#0066cc' };
+                    }
+                } catch (e) {
+                    PALETTES.custom = { name: 'Своя тема', wait: '#ff0000', ready: '#00ff00', early: '#ff6600', idle: '#0066cc' };
+                }
+            }
+
+            saveCustomTheme() {
+                try { localStorage.setItem('reactionCustomTheme', JSON.stringify(PALETTES.custom)); } catch (e) {}
+            }
+
+            updateColorPickerValues() {
+                this.customWaitValue.textContent = this.customWait.value;
+                this.customReadyValue.textContent = this.customReady.value;
+                this.customEarlyValue.textContent = this.customEarly.value;
+                this.customIdleValue.textContent = this.customIdle.value;
+                this.previewWait.style.background = this.customWait.value;
+                this.previewReady.style.background = this.customReady.value;
+                this.previewEarly.style.background = this.customEarly.value;
+                this.previewIdle.style.background = this.customIdle.value;
+            }
+
+            loadPanelStates() {
+                try {
+                    const states = localStorage.getItem('reactionPanelStates');
+                    if (states) {
+                        const panelStates = JSON.parse(states);
+                        Object.keys(panelStates).forEach(panelId => {
+                            const panel = document.getElementById(panelId);
+                            if (panel && panelStates[panelId]) {
+                                panel.classList.add('collapsed');
+                            }
+                        });
+                    }
+                } catch (e) {}
+            }
+
+            savePanelState(panelId, collapsed) {
+                try {
+                    let states = {};
+                    const saved = localStorage.getItem('reactionPanelStates');
+                    if (saved) states = JSON.parse(saved);
+                    states[panelId] = collapsed;
+                    localStorage.setItem('reactionPanelStates', JSON.stringify(states));
+                } catch (e) {}
+            }
+
+            loadGlobalModalMode() {
+                try {
+                    const modalMode = localStorage.getItem('reactionGlobalModalMode');
+                    if (modalMode && ['visual', 'audio', 'both'].includes(modalMode)) {
+                        this.globalModalMode = modalMode;
+                    }
+                } catch (e) {}
+            }
+
+            saveGlobalModalMode() {
+                try {
+                    localStorage.setItem('reactionGlobalModalMode', this.globalModalMode);
+                } catch (e) {}
+            }
+
+            applyPalette() {
+                const p = PALETTES[this.currentPalette];
+                this.swatchWait.style.backgroundColor = p.wait;
+                this.swatchReady.style.backgroundColor = p.ready;
+                this.swatchEarly.style.backgroundColor = p.early;
+                this.swatchIdle.style.backgroundColor = p.idle;
+
+                const stateColors = {
+                    WAITING_SIGNAL: { bg: p.wait, text: Utils.getTextColor(p.wait) },
+                    READY: this.getMode() === 'visual' 
+                        ? { bg: p.ready, text: Utils.getTextColor(p.ready) }
+                        : { bg: p.wait, text: Utils.getTextColor(p.wait) },
+                    TOO_EARLY: { bg: p.early, text: Utils.getTextColor(p.early) },
+                    OUTLIER: { bg: p.early, text: Utils.getTextColor(p.early) },
+                    RESULT: { bg: p.idle, text: Utils.getTextColor(p.idle) },
+                    IDLE: { bg: p.idle, text: Utils.getTextColor(p.idle) }
+                };
+
+                const colors = stateColors[this.state] || stateColors.IDLE;
+                this.reactionTest.style.backgroundColor = colors.bg;
+                this.message.style.color = colors.text;
+                if (this.state === 'RESULT') {
+                    this.result.style.color = colors.text;
+                }
+            }
+
+            getCurrentPalette() { return PALETTES[this.currentPalette]; }
+
+            getDelayRange() {
+                let min = parseInt(this.delayMinInput.value) || 2000;
+                let max = parseInt(this.delayMaxInput.value) || 6000;
+                if (min < 500) min = 500;
+                if (min > 10000) min = 10000;
+                if (max < min + 500) max = min + 500;
+                if (max > 20000) max = 20000;
+                
+                this.delayMinInput.value = min;
+                this.saveSetting('reactionDelayMin', min);
+                this.delayMaxInput.value = max;
+                this.saveSetting('reactionDelayMax', max);
+            
+                return { min, max };
+            }
+
+            getReactionBounds() {
+                let min = parseInt(this.boundMinInput.value);
+                let max = parseInt(this.boundMaxInput.value);
+                if (isNaN(min) || min < 0) min = 0;
+                if (min > 125) min = 125;
+                if (isNaN(max) || max < 270) max = 270;
+                if (max > 500) max = 500;
+                if (max <= min) max = min + 10;
+                
+                this.boundMinInput.value = min;
+                this.saveSetting('reactionBoundMin', min);
+                this.boundMaxInput.value = max;
+                this.saveSetting('reactionBoundMax', max);
+                
+                return { min, max };
+            }
+
+            getHistogramSettings() {
+                let min = parseInt(this.histMinInput.value);
+                let max = parseInt(this.histMaxInput.value);
+                let bins = parseInt(this.histBinsInput.value);
+                if (isNaN(min) || min < 0) min = 0;
+                if (min > 290) min = 290;
+                if (isNaN(max) || max < 10) max = 10;
+                if (max > 1000) max = 1000;
+                if (max <= min) max = min + 100;
+                if (isNaN(bins) || bins < 5) bins = 5;
+                if (bins > 20) bins = 20;
+                
+                this.histMinInput.value = min;
+                this.saveSetting('reactionHistMin', min);
+                this.histMaxInput.value = max;
+                this.saveSetting('reactionHistMax', max);
+                this.histBinsInput.value = bins;
+                this.saveSetting('reactionHistBins', bins);
+                
+                return { min, max, bins };
+            }
+
+            buildHistogramBins(min, max, bins) {
+                const step = (max - min) / bins;
+                return Array.from({ length: bins }, (_, i) => ({
+                    min: min + i * step,
+                    max: i === bins - 1 ? Infinity : min + (i + 1) * step,
+                    label: i === bins - 1 ? `${Math.round(min + i * step)}+` : `${Math.round(min + i * step)}`
+                }));
+            }
+
+            init() {
+                const p = this.getCurrentPalette();
+                this.reactionTest.className = '';
+                this.reactionTest.style.backgroundColor = p.idle;
+                this.message.textContent = 'Нажмите для начала';
+                this.message.style.color = Utils.getTextColor(p.idle);
+                this.result.style.display = 'none';
+                this.result.textContent = '';
+                this.result.style.color = '';
+            }
+
+            attachEventListeners() {
+                this.attachButtonListeners();
+                this.attachModalListeners();
+                this.attachTestListeners();
+                this.attachSettingsListeners();
+                this.attachPanelToggleListeners();
+                this.attachGlobalModalModeFilterListeners();
+            }
+
+            attachPanelToggleListeners() {
+                document.querySelectorAll('.panel-toggle').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const panelId = btn.dataset.panel;
+                        const panel = document.getElementById(panelId);
+                        const isCollapsed = panel.classList.toggle('collapsed');
+                        this.savePanelState(panelId, isCollapsed);
+                    });
+                });
+            }
+
+            attachGlobalModalModeFilterListeners() {
+                this.globalModalModeFilter.querySelectorAll('.mode-filter-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.globalModalModeFilter.querySelectorAll('.mode-filter-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.globalModalMode = btn.dataset.globalMode;
+                        this.saveGlobalModalMode();
+                        this.calculateGlobalStatistics();
+                    });
+                });
+            }
+
+            syncGlobalModalModeFilterUI() {
+                this.globalModalModeFilter.querySelectorAll('.mode-filter-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.globalMode === this.globalModalMode);
+                });
+            }
+
+            attachButtonListeners() {
+                this.stopBtn.addEventListener('click', () => this.stopTest());
+                this.resetSessionBtn.addEventListener('click', () => this.sessionResetModal.classList.add('visible'));
+                this.dailyToggleBtn.addEventListener('click', () => this.toggleDailyMode());
+                this.dailyResetBtn.addEventListener('click', () => this.resetDailyAttempts());
+                this.historyBtn.addEventListener('click', () => this.showHistory());
+                this.openGlobalStatsBtn.addEventListener('click', () => this.showGlobalStatsModal());
+                this.editThemeBtn.addEventListener('click', () => this.customThemeModal.classList.add('visible'));
+                this.exportGlobalCsvBtn.addEventListener('click', () => this.exportGlobalCSV());
+                this.importGlobalCsvBtn.addEventListener('click', () => this.importFileInput.click());
+                this.importFileInput.addEventListener('change', (e) => this.handleImportCSV(e));
+                this.resetGlobalDataBtn.addEventListener('click', () => this.globalResetModal.classList.add('visible'));
+                
+                this.periodBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.periodBtns.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        const days = btn.dataset.days;
+                        if (days === 'custom') {
+                            this.customPeriodForm.style.display = 'flex';
+                            this.setCustomPeriodDefaults();
+                        } else {
+                            this.customPeriodForm.style.display = 'none';
+                            this.globalStatsPeriod = { days: days === 'all' ? 'all' : parseInt(days), start: null, end: null };
+                            this.calculateGlobalStatistics();
+                        }
+                    });
+                });
+                
+                this.applyCustomPeriod.addEventListener('click', () => {
+                    const startStr = this.periodStart.value;
+                    const endStr = this.periodEnd.value;
+                    if (!startStr || !endStr) {
+                        alert('Укажите начало и конец периода');
+                        return;
+                    }
+                    const start = new Date(startStr).getTime();
+                    const end = new Date(endStr).getTime();
+                    if (start >= end) {
+                        alert('Начало должно быть раньше конца');
+                        return;
+                    }
+                    this.globalStatsPeriod = { days: 'custom', start, end };
+                    this.calculateGlobalStatistics();
+                });
+            }
+
+            attachModalListeners() {
+                const modals = [
+                    { overlay: this.sessionResetModal, close: this.sessionResetClose, cancel: this.sessionResetCancel, confirm: this.sessionResetConfirm, action: () => this.resetSession() },
+                    { overlay: this.globalResetModal, close: this.globalResetClose, cancel: this.globalResetCancel, confirm: this.globalResetConfirm, action: () => this.resetGlobalData() }
+                ];
+
+                modals.forEach(({ overlay, close, cancel, confirm, action }) => {
+                    close.addEventListener('click', () => overlay.classList.remove('visible'));
+                    cancel.addEventListener('click', () => overlay.classList.remove('visible'));
+                    confirm.addEventListener('click', () => {
+                        overlay.classList.remove('visible');
+                        action();
+                    });
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay) overlay.classList.remove('visible');
+                    });
+                });
+
+                this.historyClose.addEventListener('click', () => this.historyModal.classList.remove('visible'));
+                this.dailyResultClose.addEventListener('click', () => this.dailyResultModal.classList.remove('visible'));
+                this.historyModal.addEventListener('click', (e) => {
+                    if (e.target === this.historyModal) this.historyModal.classList.remove('visible');
+                });
+                this.dailyResultModal.addEventListener('click', (e) => {
+                    if (e.target === this.dailyResultModal) this.dailyResultModal.classList.remove('visible');
+                });
+
+                this.globalStatsClose.addEventListener('click', () => this.globalStatsModal.classList.remove('visible'));
+                this.globalStatsModal.addEventListener('click', (e) => {
+                    if (e.target === this.globalStatsModal) this.globalStatsModal.classList.remove('visible');
+                });
+
+                this.customThemeClose.addEventListener('click', () => this.customThemeModal.classList.remove('visible'));
+                this.customThemeCancel.addEventListener('click', () => this.customThemeModal.classList.remove('visible'));
+                this.customThemeSave.addEventListener('click', () => this.saveCustomThemeAndApply());
+                this.customThemeModal.addEventListener('click', (e) => {
+                    if (e.target === this.customThemeModal) this.customThemeModal.classList.remove('visible');
+                });
+
+                [this.customWait, this.customReady, this.customEarly, this.customIdle].forEach(input => {
+                    input.addEventListener('input', () => this.updateColorPickerValues());
+                });
+            }
+
+            attachTestListeners() {
+                this.reactionTest.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    this.handleClick();
+                });
+                this.reactionTest.addEventListener('contextmenu', (e) => e.preventDefault());
+                document.addEventListener('keydown', (e) => this.handleKeydown(e));
+            }
+
+            attachSettingsListeners() {
+                document.querySelectorAll('input[name="mode"]').forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        this.updateRadioLabels();
+                        this.updateResults();
+                        this.renderHistogram();
+                        this.updateDailyPanel();
+                        this.updateGlobalStatsSummary();
+                    });
+                });
+
+                this.paletteSelect.addEventListener('change', () => {
+                    this.currentPalette = this.paletteSelect.value;
+                    this.saveSetting('reactionTestPalette', this.currentPalette);
+                    this.updateEditThemeButtonVisibility();
+                    this.applyPalette();
+                    this.renderHistogram();
+                });
+
+                this.delayMinInput.addEventListener('change', () => { this.getDelayRange(); });
+                this.delayMaxInput.addEventListener('change', () => { this.getDelayRange(); });
+                this.boundMinInput.addEventListener('change', () => { this.getReactionBounds(); });
+                this.boundMaxInput.addEventListener('change', () => { this.getReactionBounds(); });
+                this.histMinInput.addEventListener('change', () => { this.getHistogramSettings(); this.renderHistogram(); });
+                this.histMaxInput.addEventListener('change', () => { this.getHistogramSettings(); this.renderHistogram(); });
+                this.histBinsInput.addEventListener('change', () => { this.getHistogramSettings(); this.renderHistogram(); });
+            }
+
+            handleKeydown(e) {
+                const tag = document.activeElement.tagName;
+                if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    this.handleClick();
+                } else if (e.code === 'Escape') {
+                    e.preventDefault();
+                    if (this.isRunning) this.stopTest();
+                }
+            }
+
+            updateEditThemeButtonVisibility() {
+                if (this.currentPalette === 'custom') {
+                    this.editThemeBtn.classList.add('visible');
+                } else {
+                    this.editThemeBtn.classList.remove('visible');
+                }
+            }
+
+            toggleDailyMode() {
+                this.dailyMode = !this.dailyMode;
+                this.dailyToggleBtn.classList.toggle('active', this.dailyMode);
+                this.dailyToggleBtn.textContent = this.dailyMode ? 'Стоп' : 'Старт';
+                
+                const mode = this.getMode();
+                this.data[mode].dailyAttempts = [];
+                this.updateDailyPanel();
+            }
+
+            resetDailyAttempts() {
+                const mode = this.getMode();
+                this.data[mode].dailyAttempts = [];
+                this.updateDailyPanel();
+            }
+
+            updateDailyPanel() {
+                const mode = this.getMode();
+                const attempts = this.data[mode].dailyAttempts;
+                this.dailyCountEl.textContent = attempts.length;
+                this.dailyFill.style.width = (attempts.length / this.DAILY_REQUIRED * 100) + '%';
+                
+                const streak = this.calculateDailyStreak(mode);
+                this.dailyStreakValue.textContent = `${streak} 🔥`;
+                
+                const allDaily = this.getAllDailyResults(mode);
+                if (allDaily.length > 0) {
+                    const bestAvg = Math.min(...allDaily.map(r => r.average));
+                    this.dailyBestValue.textContent = `${bestAvg.toFixed(0)} мс`;
+                } else {
+                    this.dailyBestValue.textContent = '-';
+                }
+                
+                this.renderLast7Days(mode);
+            }
+
+            calculateDailyStreak(mode) {
+                const allDaily = this.getAllDailyResults(mode);
+                if (allDaily.length === 0) return 0;
+                
+                const uniqueDates = new Set(allDaily.map(r => r.date));
+                const today = Utils.getDateKey(new Date());
+                
+                if (!uniqueDates.has(today)) {
+                    const yesterday = Utils.addDays(today, -1);
+                    if (!uniqueDates.has(yesterday)) return 0;
+                }
+                
+                let streak = 0;
+                let checkDate = uniqueDates.has(today) ? today : Utils.addDays(today, -1);
+                
+                while (uniqueDates.has(checkDate)) {
+                    streak++;
+                    checkDate = Utils.addDays(checkDate, -1);
+                }
+                
+                return streak;
+            }
+
+            renderLast7Days(mode) {
+                const allDaily = this.getAllDailyResults(mode);
+                const byDate = {};
+                allDaily.forEach(r => { byDate[r.date] = r.average; });
+                
+                const today = new Date();
+                const days = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(today);
+                    d.setDate(d.getDate() - i);
+                    const key = Utils.getDateKey(d);
+                    days.push({
+                        key,
+                        label: d.toLocaleDateString('ru-RU', { weekday: 'short' }).slice(0, 2),
+                        avg: byDate[key] || null
+                    });
+                }
+                
+                const values = days.map(d => d.avg).filter(v => v !== null);
+                const maxVal = values.length > 0 ? Math.max(...values) : 1;
+                const minVal = values.length > 0 ? Math.min(...values) : 0;
+                const range = Math.max(maxVal - minVal, 1);
+                
+                this.last7DaysBars.innerHTML = days.map(d => {
+                    if (d.avg === null) {
+                        return `<div class="last-7-day empty">
+                            <div class="last-7-day-bar" style="height:10%"></div>
+                            <div class="last-7-day-label">${d.label}</div>
+                        </div>`;
+                    }
+                    const height = 20 + ((d.avg - minVal) / range) * 80;
+                    return `<div class="last-7-day" title="${d.key}: ${d.avg.toFixed(0)} мс">
+                        <div class="last-7-day-bar" style="height:${height}%"></div>
+                        <div class="last-7-day-label">${d.label}</div>
+                    </div>`;
+                }).join('');
+            }
+
+            async createBeepSound(frequency = 1000) {
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                const sampleRate = this.audioContext.sampleRate;
+                const duration = 0.1;
+                const numSamples = sampleRate * duration;
+                const buffer = this.audioContext.createBuffer(1, numSamples, sampleRate);
+                const channelData = buffer.getChannelData(0);
+                for (let i = 0; i < numSamples; i++) {
+                    const attackSamples = numSamples * 0.1;
+                    let amplitude = 0.5;
+                    if (i >= attackSamples) {
+                        const decayTime = (i - attackSamples) / (numSamples - attackSamples);
+                        amplitude = 0.5 * (1 - decayTime * 0.7);
+                    }
+                    const t = i / sampleRate;
+                    const fundamental = Math.sin(2 * Math.PI * frequency * t);
+                    const harmonic = Math.sin(2 * Math.PI * frequency * 2 * t) * 0.3;
+                    channelData[i] = (fundamental + harmonic) * amplitude;
+                }
+                return buffer;
+            }
+
+            async getBeepBuffer(frequency) {
+                if (!this.audioBuffers[frequency]) {
+                    this.audioBuffers[frequency] = await this.createBeepSound(frequency);
+                }
+                return this.audioBuffers[frequency];
+            }
+
+            async playBeep(frequency = 1000) {
+                try {
+                    if (!this.audioContext) {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (this.audioContext.state === 'suspended') await this.audioContext.resume();
+                    const buffer = await this.getBeepBuffer(frequency);
+                    const source = this.audioContext.createBufferSource();
+                    source.buffer = buffer;
+                    source.connect(this.audioContext.destination);
+                    source.start();
+                } catch (error) {
+                    console.warn('Ошибка воспроизведения звука:', error);
+                }
+            }
+
+            getMode() { return document.querySelector('input[name="mode"]:checked').value; }
+
+            startTest() {
+                if (this.isRunning) return;
+                this.isRunning = true;
+                this.state = 'WAITING_SIGNAL';
+                this.stopBtn.disabled = false;
+                this.showWaitingState();
+                this.scheduleReaction();
+            }
+
+            stopTest() {
+                this.isRunning = false;
+                this.attemptId++;
+                this.stopBtn.disabled = true;
+                this.state = 'IDLE';
+                if (this.timeoutId) {
+                    clearTimeout(this.timeoutId);
+                    this.timeoutId = null;
+                }
+                this.init();
+            }
+
+            showWaitingState() {
+                const p = this.getCurrentPalette();
+                this.reactionTest.className = 'waiting';
+                this.reactionTest.style.backgroundColor = p.wait;
+                this.message.textContent = 'Ждите сигнала...';
+                this.message.style.color = Utils.getTextColor(p.wait);
+                this.result.style.display = 'none';
+            }
+
+            showReadyState() {
+                const mode = this.getMode();
+                const p = this.getCurrentPalette();
+                if (mode === 'visual') {
+                    this.reactionTest.className = 'ready';
+                    this.reactionTest.style.backgroundColor = p.ready;
+                    this.message.textContent = 'Нажмите!';
+                    this.message.style.color = Utils.getTextColor(p.ready);
+                } else {
+                    this.reactionTest.className = 'waiting';
+                    this.reactionTest.style.backgroundColor = p.wait;
+                    this.message.textContent = 'Ждите сигнала...';
+                    this.message.style.color = Utils.getTextColor(p.wait);
+                }
+            }
+
+            scheduleReaction() {
+                const attempt = ++this.attemptId;
+                this.state = 'WAITING_SIGNAL';
+                const { min, max } = this.getDelayRange();
+                const delay = Math.random() * (max - min) + min;
+
+                this.timeoutId = setTimeout(async () => {
+                    if (!this.isRunning || attempt !== this.attemptId) return;
+                    const mode = this.getMode();
+                    if (mode === 'audio') {
+                        await this.playBeep(1000);
+                        if (attempt !== this.attemptId) return;
+                    }
+                    this.startTime = performance.now();
+                    this.state = 'READY';
+                    if (mode === 'visual') this.showReadyState();
+                }, delay);
+            }
+
+            handleClick() {
+                switch (this.state) {
+                    case 'IDLE': this.startTest(); break;
+                    case 'WAITING_SIGNAL': this.handleEarlyClick(); break;
+                    case 'READY': this.registerReaction(); break;
+                    case 'RESULT':
+                    case 'TOO_EARLY':
+                    case 'OUTLIER':
+                        this.showWaitingState();
+                        this.scheduleReaction();
+                        break;
+                }
+            }
+            
+            registerReaction() {
+                const reactionTime = performance.now() - this.startTime;
+                const bounds = this.getReactionBounds();
+                
+                if (reactionTime < bounds.min || reactionTime > bounds.max) {
+                    this.handleOutlier(reactionTime);
+                    return;
+                }
+
+                const mode = this.getMode();
+                const resultObj = {
+                    timestamp: Date.now(),
+                    mode: mode,
+                    reactionTime: reactionTime
+                };
+                
+                this.data[mode].sessionResults.push(reactionTime);
+                this.data[mode].allResults.push(resultObj);
+                this.saveAllResults(mode);
+                this.updateResults();
+                this.renderHistogram();
+                this.updateGlobalModalModeCounts();
+                this.updateGlobalStatsSummary();
+                this.state = 'RESULT';
+                this.displayResult(reactionTime);
+
+                if (this.dailyMode) {
+                    this.data[mode].dailyAttempts.push(reactionTime);
+                    this.updateDailyPanel();
+                    if (this.data[mode].dailyAttempts.length >= this.DAILY_REQUIRED) {
+                        setTimeout(() => {
+                            this.completeDailyChallenge(mode, [...this.data[mode].dailyAttempts]);
+                            this.stopTest();
+                        }, 800);
+                    }
+                }
+            }
+
+            handleOutlier(time) {
+                this.attemptId++;
+                if (this.timeoutId) {
+                    clearTimeout(this.timeoutId);
+                    this.timeoutId = null;
+                }
+                this.state = 'OUTLIER';
+                const p = this.getCurrentPalette();
+                this.reactionTest.className = 'outlier';
+                this.reactionTest.style.backgroundColor = p.early;
+                this.message.textContent = `Выброс: ${time.toFixed(0)} мс. Нажмите для новой попытки`;
+                this.message.style.color = Utils.getTextColor(p.early);
+                this.result.style.display = 'none';
+            }
+
+            completeDailyChallenge(mode, attempts) {
+                const avg = attempts.reduce((a, b) => a + b, 0) / attempts.length;
+                const todayKey = Utils.getDateKey(new Date());
+                const storageKey = 'reactionDaily_' + mode + '_' + todayKey;
+                const existing = this.loadDailyResult(storageKey);
+                const isNewRecord = !existing || avg < existing.average;
+
+                if (isNewRecord) {
+                    this.saveDailyResult(storageKey, {
+                        date: todayKey,
+                        timestamp: Date.now(),
+                        attempts: attempts,
+                        average: avg
+                    });
+                }
+
+                this.showDailyResultModal(avg, existing ? existing.average : null, isNewRecord, mode, attempts);
+                this.data[mode].dailyAttempts = [];
+                this.updateDailyPanel();
+            }
+
+            loadDailyResult(key) {
+                try {
+                    const raw = localStorage.getItem(key);
+                    return raw ? JSON.parse(raw) : null;
+                } catch (e) { return null; }
+            }
+
+            saveDailyResult(key, data) {
+                try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) {}
+            }
+
+            getAllDailyResults(mode) {
+                const results = [];
+                const prefix = 'reactionDaily_' + mode + '_';
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith(prefix)) {
+                            const data = JSON.parse(localStorage.getItem(key));
+                            if (data) results.push(data);
+                        }
+                    }
+                } catch (e) {}
+                return results.sort((a, b) => b.timestamp - a.timestamp);
+            }
+
+            showDailyResultModal(avg, prevBest, isNewRecord, mode, attempts) {
+                const modeLabel = mode === 'visual' ? 'Визуальный' : 'Звуковой';
+                let html = `<div>Среднее за 5 попыток (${modeLabel}):</div>`;
+                html += `<div class="big-number">${avg.toFixed(0)} мс</div>`;
+                if (prevBest !== null) {
+                    const diff = avg - prevBest;
+                    if (isNewRecord) {
+                        html += `<div class="comparison new-record">🏆 Новый рекорд! (было ${prevBest.toFixed(0)} мс, улучшение на ${Math.abs(diff).toFixed(0)} мс)</div>`;
+                    } else {
+                        html += `<div class="comparison">Лучший результат сегодня: ${prevBest.toFixed(0)} мс (разница: +${diff.toFixed(0)} мс)</div>`;
+                    }
+                } else {
+                    html += `<div class="comparison new-record">🏆 Первый результат дня сохранён!</div>`;
+                }
+                html += `<div style="margin-top:15px;font-size:0.85rem;color:rgba(255,255,255,0.6)">Попытки: ${attempts.map(t => t.toFixed(0)).join(', ')} мс</div>`;
+                this.dailyResultContent.innerHTML = html;
+                this.dailyResultModal.classList.add('visible');
+            }
+
+            showHistory() {
+                const mode = this.getMode();
+                const modeLabel = mode === 'visual' ? 'визуального' : 'звукового';
+                const results = this.getAllDailyResults(mode);
+                if (results.length === 0) {
+                    this.historyList.innerHTML = `<div class="history-empty">Пока нет сохранённых результатов для ${modeLabel} режима.<br>Пройдите ежедневное испытание, чтобы появиться здесь.</div>`;
+                } else {
+                    const bestAvg = Math.min(...results.map(r => r.average));
+                    this.historyList.innerHTML = results.map(r => {
+                        const date = new Date(r.timestamp);
+                        const dateStr = date.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' });
+                        const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                        const isBest = r.average === bestAvg;
+                        return `
+                            <li class="history-item ${isBest ? 'best' : ''}">
+                                <div>
+                                    <div class="history-date">${dateStr}</div>
+                                    <div class="history-time">${timeStr}${isBest ? ' • 🏆 лучший' : ''}</div>
+                                </div>
+                                <div class="history-avg">${r.average.toFixed(0)} мс</div>
+                            </li>
+                        `;
+                    }).join('');
+                }
+                this.historyModal.classList.add('visible');
+            }
+
+            showGlobalStatsModal() {
+                this.syncGlobalModalModeFilterUI();
+                this.globalStatsModal.classList.add('visible');
+                this.calculateGlobalStatistics();
+            }
+
+            setCustomPeriodDefaults() {
+                const now = new Date();
+                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                this.periodStart.value = Utils.toLocalDateTimeInputValue(weekAgo);
+                this.periodEnd.value = Utils.toLocalDateTimeInputValue(now);
+            }
+
+            getFilteredResultsForMode(mode) {
+                const allResults = this.data[mode].allResults;
+                if (this.globalStatsPeriod.days !== 'all' && this.globalStatsPeriod.days !== 'custom') {
+                    const now = Date.now();
+                    const daysMs = this.globalStatsPeriod.days * 24 * 60 * 60 * 1000;
+                    const start = now - daysMs;
+                    return allResults.filter(r => r.timestamp >= start);
+                } else if (this.globalStatsPeriod.days === 'custom' && this.globalStatsPeriod.start && this.globalStatsPeriod.end) {
+                    return allResults.filter(r => 
+                        r.timestamp >= this.globalStatsPeriod.start && 
+                        r.timestamp <= this.globalStatsPeriod.end
+                    );
+                }
+                return allResults;
+            }
+
+            computeStatsForTimes(times) {
+                if (times.length === 0) return null;
+                const avg = times.reduce((a, b) => a + b, 0) / times.length;
+                const best = Math.min(...times);
+                const last = times[times.length - 1];
+                const median = Utils.calculateMedian(times);
+                const stdDev = Utils.calculateStdDev(times, avg);
+                const p10 = this.percentile(times, 10);
+                const p90 = this.percentile(times, 90);
+                const p25 = this.percentile(times, 25);
+                const p75 = this.percentile(times, 75);
+                return { count: times.length, avg, best, last, median, stdDev, p10, p90, p25, p75 };
+            }
+
+            getUniqueDaysForResults(results) {
+                return new Set(results.map(r => Utils.getDateKey(r.timestamp))).size;
+            }
+
+            updateGlobalModalModeCounts() {
+                const visualCount = this.data.visual.allResults.length;
+                const audioCount = this.data.audio.allResults.length;
+                const totalCount = visualCount + audioCount;
+                const fmt = n => n > 0 ? ` (${n})` : '';
+                if (this.globalModalVisualCount) this.globalModalVisualCount.textContent = fmt(visualCount);
+                if (this.globalModalAudioCount) this.globalModalAudioCount.textContent = fmt(audioCount);
+                if (this.globalModalBothCount) this.globalModalBothCount.textContent = fmt(totalCount);
+            }
+
+            calculateGlobalStatistics() {
+                const filterMode = this.globalModalMode;
+                const visualResults = this.getFilteredResultsForMode('visual');
+                const audioResults = this.getFilteredResultsForMode('audio');
+                
+                let visualTimes = visualResults.map(r => r.reactionTime);
+                let audioTimes = audioResults.map(r => r.reactionTime);
+                
+                let periodLabel = '';
+                if (this.globalStatsPeriod.days === 'custom') {
+                    const startDate = new Date(this.globalStatsPeriod.start).toLocaleDateString('ru-RU');
+                    const endDate = new Date(this.globalStatsPeriod.end).toLocaleDateString('ru-RU');
+                    periodLabel = `${startDate} — ${endDate}`;
+                } else if (this.globalStatsPeriod.days === 'all') {
+                    periodLabel = 'Всё время';
+                } else {
+                    periodLabel = `Последние ${this.globalStatsPeriod.days} дней`;
+                }
+                
+                if (filterMode === 'both') {
+                    const visualStats = this.computeStatsForTimes(visualTimes);
+                    const audioStats = this.computeStatsForTimes(audioTimes);
+                    const combinedTimes = [...visualTimes, ...audioTimes];
+                    const combinedStats = this.computeStatsForTimes(combinedTimes);
+                    
+                    if (!combinedStats) {
+                        this.periodStatsTitle.textContent = 'Детальная статистика';
+                        this.periodStatsBody.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">Нет данных за выбранный период</div>';
+                        this.globalHistogramBars.innerHTML = '';
+                        this.globalHistogramLabels.innerHTML = '';
+                        this.globalHistogramTitle.textContent = 'Распределение результатов за период';
+                        return;
+                    }
+                    
+                    const renderRow = (label, vVal, aVal, cVal, suffix = ' мс') => {
+                        const vStr = vVal !== null && vVal !== undefined ? (typeof vVal === 'number' ? vVal.toFixed(0) + suffix : vVal) : '-';
+                        const aStr = aVal !== null && aVal !== undefined ? (typeof aVal === 'number' ? aVal.toFixed(0) + suffix : aVal) : '-';
+                        const cStr = cVal !== null && cVal !== undefined ? (typeof cVal === 'number' ? cVal.toFixed(0) + suffix : cVal) : '-';
+                        return `<tr>
+                            <td style="text-align:left;color:rgba(255,255,255,0.85)">${label}</td>
+                            <td class="val">${vStr}</td>
+                            <td class="val">${aStr}</td>
+                            <td class="val" style="color:#00ccff">${cStr}</td>
+                        </tr>`;
+                    };
+                    
+                    let html = `<div style="margin-bottom:8px;font-size:0.85rem;color:rgba(255,255,255,0.6)">Период: ${periodLabel}</div>`;
+                    html += `<table class="comparison-table">
+                        <thead><tr>
+                            <th style="text-align:left">Показатель</th>
+                            <th>Визуальный</th>
+                            <th>Звуковой</th>
+                            <th style="color:#00ccff">Вместе</th>
+                        </tr></thead><tbody>`;
+                    html += renderRow('Попыток', visualStats?.count, audioStats?.count, combinedStats.count, '');
+                    html += renderRow('Лучший', visualStats?.best, audioStats?.best, combinedStats.best);
+                    html += renderRow('Средний', visualStats?.avg, audioStats?.avg, combinedStats.avg);
+                    html += renderRow('Медиана', visualStats?.median, audioStats?.median, combinedStats.median);
+                    html += renderRow('Отклонение', visualStats?.stdDev, audioStats?.stdDev, combinedStats.stdDev);
+                    html += renderRow('P25', visualStats?.p25, audioStats?.p25, combinedStats.p25);
+                    html += renderRow('P75', visualStats?.p75, audioStats?.p75, combinedStats.p75);
+                    html += renderRow('P10', visualStats?.p10, audioStats?.p10, combinedStats.p10);
+                    html += renderRow('P90', visualStats?.p90, audioStats?.p90, combinedStats.p90);
+                    html += renderRow('Последний', visualStats?.last, audioStats?.last, combinedStats.last);
+                    html += `</tbody></table>`;
+                    
+                    this.periodStatsTitle.textContent = 'Сравнение режимов';
+                    this.periodStatsBody.innerHTML = html;
+                    
+                    this.globalHistogramTitle.textContent = 'Распределение результатов за период (все режимы)';
+                    this.renderGlobalHistogram(combinedTimes);
+                    return;
+                }
+                
+                const times = filterMode === 'visual' ? visualTimes : audioTimes;
+                const modeLabel = filterMode === 'visual' ? 'Визуальный' : 'Звуковой';
+                const stats = this.computeStatsForTimes(times);
+                
+                if (!stats) {
+                    this.periodStatsTitle.textContent = `Детальная статистика — ${modeLabel}`;
+                    this.periodStatsBody.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">Нет данных за выбранный период</div>';
+                    this.globalHistogramBars.innerHTML = '';
+                    this.globalHistogramLabels.innerHTML = '';
+                    this.globalHistogramTitle.textContent = `Распределение результатов за период — ${modeLabel}`;
+                    return;
+                }
+                
+                const uniqueDays = this.getUniqueDaysForResults(filterMode === 'visual' ? visualResults : audioResults);
+                
+                let html = `
+                    <div class="period-stat-item">
+                        <span class="period-stat-label">Период:</span>
+                        <span class="period-stat-value">${periodLabel}</span>
+                    </div>
+                    <div class="period-stat-item">
+                        <span class="period-stat-label">Режим:</span>
+                        <span class="period-stat-value">${modeLabel}</span>
+                    </div>
+                    <div class="period-stat-item">
+                        <span class="period-stat-label">Попыток:</span>
+                        <span class="period-stat-value">${stats.count}</span>
+                    </div>
+                    <div class="period-stat-item">
+                        <span class="period-stat-label">Активных дней:</span>
+                        <span class="period-stat-value">${uniqueDays}</span>
+                    </div>
+                    <div class="period-stat-item">
+                        <span class="period-stat-label">Лучший:</span>
+                        <span class="period-stat-value">${stats.best.toFixed(0)} мс</span>
+                    </div>
+                    <div class="period-stat-item">
+                        <span class="period-stat-label">Средний:</span>
+                        <span class="period-stat-value">${stats.avg.toFixed(0)} мс</span>
+                    </div>
+                    <div class="period-stat-item">
+                        <span class="period-stat-label">Медиана:</span>
+                        <span class="period-stat-value">${stats.median.toFixed(0)} мс</span>
+                    </div>
+                    <div class="period-stat-item">
+                        <span class="period-stat-label">Отклонение:</span>
+                        <span class="period-stat-value">${stats.stdDev.toFixed(0)} мс</span>
+                    </div>
+                    <div class="period-stat-item">
+                        <span class="period-stat-label">P25 / P75:</span>
+                        <span class="period-stat-value">${stats.p25.toFixed(0)} / ${stats.p75.toFixed(0)} мс</span>
+                    </div>
+                    <div class="period-stat-item">
+                        <span class="period-stat-label">P10 / P90:</span>
+                        <span class="period-stat-value">${stats.p10.toFixed(0)} / ${stats.p90.toFixed(0)} мс</span>
+                    </div>
+                    <div class="period-stat-item">
+                        <span class="period-stat-label">Последний:</span>
+                        <span class="period-stat-value">${stats.last.toFixed(0)} мс</span>
+                    </div>
+                `;
+                
+                this.periodStatsTitle.textContent = `Детальная статистика — ${modeLabel}`;
+                this.periodStatsBody.innerHTML = html;
+                
+                this.globalHistogramTitle.textContent = `Распределение результатов за период — ${modeLabel}`;
+                this.renderGlobalHistogram(times);
+            }
+
+            renderGlobalHistogram(times) {
+                if (times.length === 0) {
+                    this.globalHistogramBars.innerHTML = '';
+                    this.globalHistogramLabels.innerHTML = '';
+                    return;
+                }
+                const { min, max, bins } = this.getHistogramSettings();
+                const histogramBins = this.buildHistogramBins(min, max, bins);
+                const counts = times.reduce((acc, t) => {
+                    for (let i = 0; i < histogramBins.length; i++) {
+                        if (t >= histogramBins[i].min && t < histogramBins[i].max) {
+                            acc[i]++;
+                            break;
+                        }
+                    }
+                    return acc;
+                }, histogramBins.map(() => 0));
+                
+                const maxCount = Math.max(1, ...counts);
+                const p = this.getCurrentPalette();
+                
+                this.globalHistogramBars.innerHTML = counts.map((c, i) => {
+                    const height = (c / maxCount) * 100;
+                    return `<div class="histogram-bar" style="height:${height}%;background:${p.ready}" title="${histogramBins[i].label} мс: ${c}">
+                        ${c > 0 ? `<div class="histogram-bar-count">${c}</div>` : ''}
+                    </div>`;
+                }).join('');
+                this.globalHistogramLabels.innerHTML = histogramBins.map(b => `<span>${b.label}</span>`).join('');
+            }
+
+            updateGlobalStatsSummary() {
+                const mode = this.getMode();
+                const allResults = this.data[mode].allResults;
+                
+                this.globalTotalAttempts.textContent = allResults.length;
+                
+                if (allResults.length > 0) {
+                    const times = allResults.map(r => r.reactionTime);
+                    const avg = times.reduce((a, b) => a + b, 0) / times.length;
+                    const stdDev = Utils.calculateStdDev(times, avg);
+                    
+                    this.globalAvgResult.textContent = `${avg.toFixed(0)} мс`;
+                    this.globalStdDevResult.textContent = stdDev !== null ? `${stdDev.toFixed(0)} мс` : '-';
+                    
+                    const uniqueDates = new Set(allResults.map(r => Utils.getDateKey(r.timestamp)));
+                    this.globalActiveDays.textContent = uniqueDates.size;
+                } else {
+                    this.globalAvgResult.textContent = '-';
+                    this.globalStdDevResult.textContent = '-';
+                    this.globalActiveDays.textContent = '0';
+                }
+            }
+
+            percentile(arr, p) {
+                if (arr.length === 0) return 0;
+                const sorted = [...arr].sort((a, b) => a - b);
+                const idx = (p / 100) * (sorted.length - 1);
+                const lower = Math.floor(idx);
+                const upper = Math.ceil(idx);
+                if (lower === upper) return sorted[lower];
+                return sorted[lower] + (sorted[upper] - sorted[lower]) * (idx - lower);
+            }
+
+            exportGlobalCSV() {
+                const filterMode = this.globalModalMode;
+                let results = [];
+                let filenameSuffix = '';
+                
+                if (filterMode === 'both') {
+                    results = [...this.data.visual.allResults, ...this.data.audio.allResults].sort((a, b) => a.timestamp - b.timestamp);
+                    filenameSuffix = 'all';
+                } else {
+                    results = this.data[filterMode].allResults;
+                    filenameSuffix = filterMode;
+                }
+                
+                if (results.length === 0) {
+                    alert('Нет данных для экспорта.');
+                    return;
+                }
+                let csv = 'timestamp,iso_datetime,local_datetime,reaction_time_ms,mode\n';
+                results.forEach(r => {
+                    const isoDt = new Date(r.timestamp).toISOString();
+                    const localDt = Utils.toLocalDateTimeString(r.timestamp);
+                    const modeLabel = r.mode || 'unknown';
+                    csv += `${r.timestamp},${isoDt},${Utils.escapeCSV(localDt)},${r.reactionTime.toFixed(2)},${modeLabel}\n`;
+                });
+                this.downloadCSV(csv, `reaction_global_${filenameSuffix}_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
+            }
+
+            handleImportCSV(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    try {
+                        const text = evt.target.result;
+                        const lines = text.split(/\r?\n/).filter(l => l.trim());
+                        if (lines.length < 2) {
+                            alert('Файл пуст или не содержит данных.');
+                            return;
+                        }
+                        const mode = this.getMode();
+                        let imported = 0;
+                        for (let i = 1; i < lines.length; i++) {
+                            const cols = this.parseCSVLine(lines[i]);
+                            if (cols.length < 3) continue;
+                            const timestamp = parseInt(cols[0]);
+                            const reactionTime = parseFloat(cols[3] || cols[2]);
+                            if (isNaN(timestamp) || isNaN(reactionTime)) continue;
+                            this.data[mode].allResults.push({
+                                timestamp,
+                                mode,
+                                reactionTime
+                            });
+                            imported++;
+                        }
+                        this.saveAllResults(mode);
+                        this.updateGlobalModalModeCounts();
+                        this.updateGlobalStatsSummary();
+                        alert(`Импортировано результатов: ${imported}`);
+                    } catch (err) {
+                        alert('Ошибка импорта: ' + err.message);
+                    }
+                    e.target.value = '';
+                };
+                reader.readAsText(file);
+            }
+
+            parseCSVLine(line) {
+                const result = [];
+                let cur = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const c = line[i];
+                    if (inQuotes) {
+                        if (c === '"' && line[i + 1] === '"') {
+                            cur += '"';
+                            i++;
+                        } else if (c === '"') {
+                            inQuotes = false;
+                        } else {
+                            cur += c;
+                        }
+                    } else {
+                        if (c === '"') {
+                            inQuotes = true;
+                        } else if (c === ',') {
+                            result.push(cur);
+                            cur = '';
+                        } else {
+                            cur += c;
+                        }
+                    }
+                }
+                result.push(cur);
+                return result;
+            }
+
+            downloadCSV(csv, filename) {
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            resetGlobalData() {
+                const keysToRemove = [];
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && (
+                            key.startsWith('reactionAllResults_') ||
+                            key.startsWith('reactionDaily_')
+                        )) {
+                            keysToRemove.push(key);
+                        }
+                    }
+                    keysToRemove.forEach(k => localStorage.removeItem(k));
+                } catch (e) {}
+                
+                this.data.visual.allResults = [];
+                this.data.audio.allResults = [];
+                this.data.visual.dailyAttempts = [];
+                this.data.audio.dailyAttempts = [];
+                
+                this.updateGlobalModalModeCounts();
+                this.updateGlobalStatsSummary();
+                this.updateDailyPanel();
+                alert('Все данные успешно удалены.');
+                if (this.globalStatsModal.classList.contains('visible')) {
+                    this.calculateGlobalStatistics();
+                }
+            }
+
+            saveCustomThemeAndApply() {
+                PALETTES.custom = {
+                    name: 'Своя тема',
+                    wait: this.customWait.value,
+                    ready: this.customReady.value,
+                    early: this.customEarly.value,
+                    idle: this.customIdle.value
+                };
+                this.saveCustomTheme();
+                this.applyPalette();
+                this.renderHistogram();
+                this.customThemeModal.classList.remove('visible');
+            }
+
+            handleEarlyClick() {
+                this.attemptId++;
+                if (this.timeoutId) {
+                    clearTimeout(this.timeoutId);
+                    this.timeoutId = null;
+                }
+                this.state = 'TOO_EARLY';
+                const p = this.getCurrentPalette();
+                this.reactionTest.className = 'too-early';
+                this.reactionTest.style.backgroundColor = p.early;
+                this.message.textContent = 'Слишком рано! Нажмите для новой попытки';
+                this.message.style.color = Utils.getTextColor(p.early);
+                this.result.style.display = 'none';
+            }
+
+            displayResult(time) {
+                const p = this.getCurrentPalette();
+                this.reactionTest.className = '';
+                this.reactionTest.style.backgroundColor = p.idle;
+                this.message.textContent = 'Нажмите для следующего';
+                this.message.style.color = Utils.getTextColor(p.idle);
+                this.result.textContent = `${time.toFixed(0)} мс`;
+                this.result.style.display = 'block';
+                this.result.style.color = Utils.getTextColor(p.idle);
+            }
+
+            renderHistogram() {
+                const mode = this.getMode();
+                const results = this.data[mode].sessionResults;
+                const { min, max, bins } = this.getHistogramSettings();
+                const histogramBins = this.buildHistogramBins(min, max, bins);
+                const counts = results.reduce((acc, t) => {
+                    for (let i = 0; i < histogramBins.length; i++) {
+                        if (t >= histogramBins[i].min && t < histogramBins[i].max) {
+                            acc[i]++;
+                            break;
+                        }
+                    }
+                    return acc;
+                }, histogramBins.map(() => 0));
+                
+                const maxCount = Math.max(1, ...counts);
+                const p = this.getCurrentPalette();
+
+                this.histogramBars.innerHTML = counts.map((c, i) => {
+                    const height = (c / maxCount) * 100;
+                    return `<div class="histogram-bar" style="height:${height}%;background:${p.ready}" title="${histogramBins[i].label} мс: ${c}">
+                        ${c > 0 ? `<div class="histogram-bar-count">${c}</div>` : ''}
+                    </div>`;
+                }).join('');
+                this.histogramLabels.innerHTML = histogramBins.map(b => `<span>${b.label}</span>`).join('');
+            }
+
+            updateResults() {
+                const mode = this.getMode();
+                const results = this.data[mode].sessionResults;
+                if (results.length === 0) {
+                    this.lastResultEl.textContent = '-';
+                    this.averageResultEl.textContent = '-';
+                    this.bestResultEl.textContent = '-';
+                    this.medianResultEl.textContent = '-';
+                    this.stdDevResultEl.textContent = '-';
+                    this.attemptsCountEl.textContent = '0';
+                    this.lastTrendEl.textContent = '=';
+                    this.lastTrendEl.className = 'trend same';
+                    return;
+                }
+                
+                const lastResult = results[results.length - 1];
+                const avgResult = results.reduce((a, b) => a + b, 0) / results.length;
+                const bestResult = Math.min(...results);
+                const median = Utils.calculateMedian(results);
+                const stdDev = Utils.calculateStdDev(results, avgResult);
+                
+                this.lastResultEl.textContent = lastResult.toFixed(0);
+                this.averageResultEl.textContent = avgResult.toFixed(0);
+                this.bestResultEl.textContent = bestResult.toFixed(0);
+                this.medianResultEl.textContent = median.toFixed(0);
+                this.stdDevResultEl.textContent = stdDev.toFixed(0);
+                this.attemptsCountEl.textContent = results.length;
+
+                const prevLast = this.data[mode].previousLast;
+                if (prevLast !== null) {
+                    const diff = lastResult - prevLast;
+                    if (Math.abs(diff) < 0.5) {
+                        this.lastTrendEl.textContent = '=';
+                        this.lastTrendEl.className = 'trend same';
+                    } else if (diff < 0) {
+                        this.lastTrendEl.textContent = '↓';
+                        this.lastTrendEl.className = 'trend down';
+                    } else {
+                        this.lastTrendEl.textContent = '↑';
+                        this.lastTrendEl.className = 'trend up';
+                    }
+                } else {
+                    this.lastTrendEl.textContent = '=';
+                    this.lastTrendEl.className = 'trend same';
+                }
+                this.data[mode].previousLast = lastResult;
+            }
+
+            resetSession() {
+                const mode = this.getMode();
+                if (this.data[mode].sessionResults.length === 0) {
+                    alert('Нет данных сессии для сброса.');
+                    return;
+                }
+                this.data[mode].sessionResults = [];
+                this.data[mode].previousAverage = null;
+                this.data[mode].previousLast = null;
+                this.updateResults();
+                this.renderHistogram();
+                if (this.isRunning) {
+                    this.stopTest();
+                }
+            }
+
+            updateRadioLabels() {
+                document.querySelectorAll('.radio-label').forEach(label => label.classList.remove('selected'));
+                document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+                    const label = document.querySelector(`label[for="${radio.id}"]`);
+                    if (label) label.classList.add('selected');
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { new ReactionTest(); });
+    </script>
+</body>
+</html>
