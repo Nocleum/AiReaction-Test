@@ -334,14 +334,6 @@
             border-color: rgba(0, 255, 0, 0.5);
             color: white; font-weight: 600;
         }
-        .mode-filter-btn .mode-count {
-            display: inline-block; margin-left: 3px;
-            font-size: 0.7rem; color: rgba(255, 255, 255, 0.5);
-            font-weight: normal;
-        }
-        .mode-filter-btn.active .mode-count {
-            color: rgba(255, 255, 255, 0.8);
-        }
         
         .period-selector {
             display: flex; gap: 6px; margin-bottom: 15px; flex-wrap: wrap;
@@ -388,14 +380,6 @@
             margin-bottom: 10px; font-size: 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.3); padding-bottom: 5px;
         }
-        .period-stats-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
-        }
-        .period-stat-item {
-            display: flex; justify-content: space-between; padding: 5px 0;
-        }
-        .period-stat-label { color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; }
-        .period-stat-value { font-weight: bold; color: #00ff00; font-variant-numeric: tabular-nums; }
         .global-stats-actions {
             display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;
             padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.3);
@@ -458,6 +442,276 @@
         .modal-body { line-height: 1.5; margin-bottom: 20px; }
         .modal-actions {
             display: flex; gap: 10px; justify-content: flex-end;
+        }
+        
+        /* ===== Global stats modal ===== */
+        #globalStatsModal .modal {
+            width: 960px;
+            max-width: 96vw;
+            height: 85vh;
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 0;
+        }
+        #globalStatsModal .modal-header {
+            flex-shrink: 0;
+            padding: 18px 22px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #globalStatsModal .modal-header h2 {
+            margin: 0;
+            border: none;
+            padding: 0;
+            font-size: 1.25rem;
+        }
+        #globalStatsModal .modal-body {
+            flex: 1;
+            min-height: 0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            overflow: hidden;
+        }
+        .modal-global-layout {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+        }
+        .modal-global-sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            padding: 18px;
+            border-right: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.02);
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .modal-global-sidebar::-webkit-scrollbar { width: 5px; }
+        .modal-global-sidebar::-webkit-scrollbar-track { background: transparent; }
+        .modal-global-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        .modal-global-main {
+            flex: 1;
+            min-width: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 18px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .modal-global-main::-webkit-scrollbar { width: 6px; }
+        .modal-global-main::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .modal-global-main::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+        
+        .sidebar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sidebar-section-title {
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.55);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .modal-global-sidebar .mode-filter {
+            flex-direction: column;
+            gap: 4px;
+            margin: 0;
+            padding: 4px;
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .modal-global-sidebar .mode-filter-btn {
+            width: 100%;
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+        .modal-global-sidebar .period-selector {
+            flex-direction: column;
+            gap: 4px;
+            margin: 0;
+        }
+        .modal-global-sidebar .period-btn {
+            width: 100%;
+            min-width: 0;
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+        .modal-global-sidebar .period-stats-form {
+            margin: 0;
+            gap: 8px;
+        }
+        .modal-global-sidebar .form-row {
+            flex-direction: column;
+            gap: 4px;
+            align-items: stretch;
+        }
+        .modal-global-sidebar .form-row label {
+            min-width: 0;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .modal-global-sidebar .form-row input[type="datetime-local"] {
+            width: 100%;
+            padding: 7px 8px;
+            font-size: 0.82rem;
+        }
+        .modal-global-sidebar .btn {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+        .sidebar-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.12);
+            margin: 2px 0;
+        }
+        
+        .modal-global-main .period-stats-result {
+            margin: 0;
+            padding: 14px 16px;
+        }
+        .modal-global-main .period-stats-result h4 {
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+        }
+        .modal-global-main .global-histogram {
+            margin: 0;
+            padding: 14px 16px;
+        }
+        .modal-global-main .global-histogram h4 {
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+        }
+        .modal-global-main .global-stats-actions {
+            margin: 0;
+            padding: 14px 0 4px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            gap: 8px;
+        }
+        .modal-global-main .global-stats-actions .btn {
+            min-width: 0;
+            flex: 1 1 0;
+            white-space: nowrap;
+            padding: 8px 10px;
+            font-size: 0.8rem;
+        }
+        
+        /* ===== Unified statistics table ===== */
+        .stats-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .stats-meta-item {
+            display: flex;
+            gap: 6px;
+            align-items: baseline;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        .stats-meta-item .meta-label {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .stats-meta-item .meta-value {
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-variant-numeric: tabular-nums;
+        }
+        .comparison-table thead th {
+            padding: 8px 10px;
+            text-align: right;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.55);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+            white-space: nowrap;
+        }
+        .comparison-table thead th:first-child {
+            text-align: left;
+        }
+        .comparison-table thead th.col-visual { color: #00ff00; }
+        .comparison-table thead th.col-audio { color: #ffcc33; }
+        .comparison-table thead th.col-combined { color: #00ccff; }
+        
+        .comparison-table tbody td {
+            padding: 9px 10px;
+            font-size: 0.92rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            vertical-align: middle;
+        }
+        .comparison-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .comparison-table tbody td.label-cell {
+            text-align: left;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 400;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            width: 42%;
+        }
+        .comparison-table tbody td.val-cell {
+            text-align: right;
+            font-weight: 600;
+            color: #00ff00;
+            font-size: 0.95rem;
+            font-variant-numeric: tabular-nums;
+        }
+        .comparison-table.mode-both tbody td.val-cell {
+            color: #00ff00;
+        }
+        .comparison-table.mode-both tbody td.val-cell.visual-val {
+            color: #00ff00;
+        }
+        .comparison-table.mode-both tbody td.val-cell.audio-val {
+            color: #ffcc33;
+        }
+        .comparison-table.mode-both tbody td.val-cell.combined-val {
+            color: #00ccff;
+        }
+        .comparison-table tbody td.val-cell.empty {
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: 400;
+        }
+        .comparison-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
         
         .history-list { list-style: none; }
@@ -535,27 +789,6 @@
             display: flex; gap: 10px; margin-top: 10px;
         }
         
-        .comparison-table {
-            width: 100%; border-collapse: collapse; margin-top: 15px;
-        }
-        .comparison-table th, .comparison-table td {
-            padding: 8px 6px; text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            font-size: 0.85rem;
-        }
-        .comparison-table th {
-            color: rgba(255, 255, 255, 0.6); font-weight: 600;
-            font-size: 0.75rem; text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .comparison-table td.val {
-            font-weight: bold; color: #00ff00;
-            font-variant-numeric: tabular-nums;
-        }
-        .comparison-table tr.highlight {
-            background: rgba(0, 255, 0, 0.08);
-        }
-        
         @media (max-width: 768px) {
             .message { font-size: 2.5rem; }
             .result { font-size: 2rem; }
@@ -575,6 +808,64 @@
             .histogram-labels span {
                 transform: rotate(0deg);
                 font-size: 0.6rem;
+            }
+            #globalStatsModal .modal {
+                width: 100%;
+                height: 100vh;
+                max-width: 100%;
+                max-height: 100vh;
+                border-radius: 0;
+                border: none;
+            }
+            #globalStatsModal .modal-header {
+                padding: 14px 16px 12px;
+            }
+            #globalStatsModal .modal-header h2 {
+                font-size: 1.1rem;
+            }
+            .modal-global-layout {
+                flex-direction: column;
+            }
+            .modal-global-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+                padding: 14px 16px;
+                max-height: 45vh;
+                flex-shrink: 0;
+            }
+            .modal-global-main {
+                padding: 14px 16px;
+            }
+            .modal-global-sidebar .mode-filter,
+            .modal-global-sidebar .period-selector {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .modal-global-sidebar .mode-filter-btn,
+            .modal-global-sidebar .period-btn {
+                flex: 1 1 auto;
+                text-align: center;
+            }
+            .modal-global-sidebar .form-row {
+                flex-direction: row;
+                align-items: center;
+                gap: 10px;
+            }
+            .modal-global-sidebar .form-row label {
+                min-width: 80px;
+            }
+            .comparison-table tbody td.label-cell {
+                width: 48%;
+                font-size: 0.82rem;
+            }
+            .comparison-table tbody td.val-cell {
+                font-size: 0.85rem;
+                padding: 8px 6px;
+            }
+            .comparison-table thead th {
+                font-size: 0.65rem;
+                padding: 6px;
             }
         }
     </style>
@@ -801,50 +1092,67 @@
     </div>
 
     <div class="modal-overlay" id="globalStatsModal">
-        <div class="modal" style="max-width: 750px;">
-            <h2>Extended Global Statistics <button class="modal-close" id="globalStatsClose">×</button></h2>
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Extended Global Statistics</h2>
+                <button class="modal-close" id="globalStatsClose">×</button>
+            </div>
             <div class="modal-body">
-                <div class="mode-filter" id="globalModalModeFilter">
-                    <button class="mode-filter-btn active" data-global-mode="visual" title="Visual mode statistics">Visual<span class="mode-count" id="globalModalVisualCount"></span></button>
-                    <button class="mode-filter-btn" data-global-mode="audio" title="Audio mode statistics">Audio<span class="mode-count" id="globalModalAudioCount"></span></button>
-                    <button class="mode-filter-btn" data-global-mode="both" title="Comparison of both modes">Both<span class="mode-count" id="globalModalBothCount"></span></button>
-                </div>
-                
-                <div class="period-selector">
-                    <button class="period-btn active" data-days="7">7 days</button>
-                    <button class="period-btn" data-days="30">30 days</button>
-                    <button class="period-btn" data-days="90">90 days</button>
-                    <button class="period-btn" data-days="all">All time</button>
-                    <button class="period-btn" data-days="custom">Custom</button>
-                </div>
-                
-                <div class="period-stats-form" id="customPeriodForm" style="display: none;">
-                    <div class="form-row">
-                        <label>Start:</label>
-                        <input type="datetime-local" id="periodStart">
-                    </div>
-                    <div class="form-row">
-                        <label>End:</label>
-                        <input type="datetime-local" id="periodEnd">
-                    </div>
-                    <button class="btn" id="applyCustomPeriod" style="width: 100%;">Apply</button>
-                </div>
-                
-                <div class="period-stats-result" id="periodStatsResult">
-                    <h4 id="periodStatsTitle">Detailed statistics</h4>
-                    <div id="periodStatsBody"></div>
-                </div>
-                
-                <div class="global-histogram">
-                    <h4 id="globalHistogramTitle">Result distribution for the period</h4>
-                    <div class="histogram-bars" id="globalHistogramBars" style="height: 120px;"></div>
-                    <div class="histogram-labels" id="globalHistogramLabels"></div>
-                </div>
-                
-                <div class="global-stats-actions">
-                    <button class="btn small" id="exportGlobalCsvBtn" title="Export all results to CSV">Export CSV</button>
-                    <button class="btn small" id="importGlobalCsvBtn" title="Import results from CSV">Import CSV</button>
-                    <button class="btn small danger" id="resetGlobalDataBtn" title="Delete all saved results">Reset data</button>
+                <div class="modal-global-layout">
+                    <aside class="modal-global-sidebar">
+                        <div class="sidebar-section">
+                            <div class="sidebar-section-title">Mode</div>
+                            <div class="mode-filter" id="globalModalModeFilter">
+                                <button class="mode-filter-btn active" data-global-mode="visual" title="Visual mode statistics">Visual</button>
+                                <button class="mode-filter-btn" data-global-mode="audio" title="Audio mode statistics">Audio</button>
+                                <button class="mode-filter-btn" data-global-mode="both" title="Comparison of both modes">Both</button>
+                            </div>
+                        </div>
+                        
+                        <div class="sidebar-divider"></div>
+                        
+                        <div class="sidebar-section">
+                            <div class="sidebar-section-title">Period</div>
+                            <div class="period-selector">
+                                <button class="period-btn active" data-days="7">7 days</button>
+                                <button class="period-btn" data-days="30">30 days</button>
+                                <button class="period-btn" data-days="90">90 days</button>
+                                <button class="period-btn" data-days="all">All time</button>
+                                <button class="period-btn" data-days="custom">Custom</button>
+                            </div>
+                        </div>
+                        
+                        <div class="period-stats-form" id="customPeriodForm" style="display: none;">
+                            <div class="form-row">
+                                <label>Start:</label>
+                                <input type="datetime-local" id="periodStart">
+                            </div>
+                            <div class="form-row">
+                                <label>End:</label>
+                                <input type="datetime-local" id="periodEnd">
+                            </div>
+                            <button class="btn" id="applyCustomPeriod">Apply</button>
+                        </div>
+                    </aside>
+                    
+                    <section class="modal-global-main">
+                        <div class="period-stats-result" id="periodStatsResult">
+                            <h4 id="periodStatsTitle">Detailed statistics</h4>
+                            <div id="periodStatsBody"></div>
+                        </div>
+                        
+                        <div class="global-histogram">
+                            <h4 id="globalHistogramTitle">Result distribution for the period</h4>
+                            <div class="histogram-bars" id="globalHistogramBars" style="height: 120px;"></div>
+                            <div class="histogram-labels" id="globalHistogramLabels"></div>
+                        </div>
+                        
+                        <div class="global-stats-actions">
+                            <button class="btn small" id="exportGlobalCsvBtn" title="Export all results to CSV">Export CSV</button>
+                            <button class="btn small" id="importGlobalCsvBtn" title="Import results from CSV">Import CSV</button>
+                            <button class="btn small danger" id="resetGlobalDataBtn" title="Delete all saved results">Reset data</button>
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>
@@ -1011,7 +1319,6 @@
                 this.renderHistogram();
                 this.updateResults();
                 this.updateDailyPanel();
-                this.updateGlobalModalModeCounts();
                 this.updateGlobalStatsSummary();
                 this.init();
             }
@@ -1106,9 +1413,6 @@
                 this.customThemeSave = document.getElementById('customThemeSave');
                 this.periodBtns = document.querySelectorAll('.period-btn');
                 this.globalModalModeFilter = document.getElementById('globalModalModeFilter');
-                this.globalModalVisualCount = document.getElementById('globalModalVisualCount');
-                this.globalModalAudioCount = document.getElementById('globalModalAudioCount');
-                this.globalModalBothCount = document.getElementById('globalModalBothCount');
             }
 
             loadSettings() {
@@ -1781,7 +2085,6 @@
                 this.saveAllResults(mode);
                 this.updateResults();
                 this.renderHistogram();
-                this.updateGlobalModalModeCounts();
                 this.updateGlobalStatsSummary();
                 this.state = 'RESULT';
                 this.displayResult(reactionTime);
@@ -1954,14 +2257,63 @@
                 return new Set(results.map(r => Utils.getDateKey(r.timestamp))).size;
             }
 
-            updateGlobalModalModeCounts() {
-                const visualCount = this.data.visual.allResults.length;
-                const audioCount = this.data.audio.allResults.length;
-                const totalCount = visualCount + audioCount;
-                const fmt = n => n > 0 ? ` (${n})` : '';
-                if (this.globalModalVisualCount) this.globalModalVisualCount.textContent = fmt(visualCount);
-                if (this.globalModalAudioCount) this.globalModalAudioCount.textContent = fmt(audioCount);
-                if (this.globalModalBothCount) this.globalModalBothCount.textContent = fmt(totalCount);
+            // ===== Unified statistics table rendering =====
+            formatStatValue(value, suffix = ' ms') {
+                if (value === null || value === undefined) return { text: '—', empty: true };
+                if (typeof value === 'number') {
+                    return { text: value.toFixed(0) + suffix, empty: false };
+                }
+                return { text: String(value), empty: false };
+            }
+
+            buildStatsTableHTML(rows, mode) {
+                // mode: 'single' | 'both'
+                const isBoth = mode === 'both';
+                const tableClass = isBoth ? 'comparison-table mode-both' : 'comparison-table';
+                
+                let theadCols = '';
+                if (isBoth) {
+                    theadCols = `
+                        <th class="col-visual">Visual</th>
+                        <th class="col-audio">Audio</th>
+                        <th class="col-combined">Combined</th>
+                    `;
+                } else {
+                    theadCols = `<th>Value</th>`;
+                }
+                
+                let tbody = '';
+                rows.forEach(row => {
+                    let cells = `<td class="label-cell">${row.label}</td>`;
+                    if (isBoth) {
+                        // row.values = [visual, audio, combined]
+                        const v = this.formatStatValue(row.values[0], row.suffix);
+                        const a = this.formatStatValue(row.values[1], row.suffix);
+                        const c = this.formatStatValue(row.values[2], row.suffix);
+                        cells += `<td class="val-cell visual-val${v.empty ? ' empty' : ''}">${v.text}</td>`;
+                        cells += `<td class="val-cell audio-val${a.empty ? ' empty' : ''}">${a.text}</td>`;
+                        cells += `<td class="val-cell combined-val${c.empty ? ' empty' : ''}">${c.text}</td>`;
+                    } else {
+                        // row.values = [single]
+                        const v = this.formatStatValue(row.values[0], row.suffix);
+                        cells += `<td class="val-cell${v.empty ? ' empty' : ''}">${v.text}</td>`;
+                    }
+                    tbody += `<tr>${cells}</tr>`;
+                });
+                
+                return `<table class="${tableClass}">
+                    <thead><tr><th>Metric</th>${theadCols}</tr></thead>
+                    <tbody>${tbody}</tbody>
+                </table>`;
+            }
+
+            buildStatsMetaHTML(metaItems) {
+                return `<div class="stats-meta">${metaItems.map(item => 
+                    `<div class="stats-meta-item">
+                        <span class="meta-label">${item.label}:</span>
+                        <span class="meta-value">${item.value}</span>
+                    </div>`
+                ).join('')}</div>`;
             }
 
             calculateGlobalStatistics() {
@@ -1991,47 +2343,41 @@
                     
                     if (!combinedStats) {
                         this.periodStatsTitle.textContent = 'Detailed statistics';
-                        this.periodStatsBody.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No data for the selected period</div>';
+                        this.periodStatsBody.innerHTML = `<div class="empty-state">No data for the selected period</div>`;
                         this.globalHistogramBars.innerHTML = '';
                         this.globalHistogramLabels.innerHTML = '';
                         this.globalHistogramTitle.textContent = 'Result distribution for the period';
                         return;
                     }
                     
-                    const renderRow = (label, vVal, aVal, cVal, suffix = ' ms') => {
-                        const vStr = vVal !== null && vVal !== undefined ? (typeof vVal === 'number' ? vVal.toFixed(0) + suffix : vVal) : '-';
-                        const aStr = aVal !== null && aVal !== undefined ? (typeof aVal === 'number' ? aVal.toFixed(0) + suffix : aVal) : '-';
-                        const cStr = cVal !== null && cVal !== undefined ? (typeof cVal === 'number' ? cVal.toFixed(0) + suffix : cVal) : '-';
-                        return `<tr>
-                            <td style="text-align:left;color:rgba(255,255,255,0.85)">${label}</td>
-                            <td class="val">${vStr}</td>
-                            <td class="val">${aStr}</td>
-                            <td class="val" style="color:#00ccff">${cStr}</td>
-                        </tr>`;
-                    };
+                    const visualDays = this.getUniqueDaysForResults(visualResults);
+                    const audioDays = this.getUniqueDaysForResults(audioResults);
+                    const combinedDays = new Set([
+                        ...visualResults.map(r => Utils.getDateKey(r.timestamp)),
+                        ...audioResults.map(r => Utils.getDateKey(r.timestamp))
+                    ]).size;
                     
-                    let html = `<div style="margin-bottom:8px;font-size:0.85rem;color:rgba(255,255,255,0.6)">Period: ${periodLabel}</div>`;
-                    html += `<table class="comparison-table">
-                        <thead><tr>
-                            <th style="text-align:left">Metric</th>
-                            <th>Visual</th>
-                            <th>Audio</th>
-                            <th style="color:#00ccff">Combined</th>
-                        </tr></thead><tbody>`;
-                    html += renderRow('Attempts', visualStats?.count, audioStats?.count, combinedStats.count, '');
-                    html += renderRow('Best', visualStats?.best, audioStats?.best, combinedStats.best);
-                    html += renderRow('Average', visualStats?.avg, audioStats?.avg, combinedStats.avg);
-                    html += renderRow('Median', visualStats?.median, audioStats?.median, combinedStats.median);
-                    html += renderRow('Std Dev', visualStats?.stdDev, audioStats?.stdDev, combinedStats.stdDev);
-                    html += renderRow('P25', visualStats?.p25, audioStats?.p25, combinedStats.p25);
-                    html += renderRow('P75', visualStats?.p75, audioStats?.p75, combinedStats.p75);
-                    html += renderRow('P10', visualStats?.p10, audioStats?.p10, combinedStats.p10);
-                    html += renderRow('P90', visualStats?.p90, audioStats?.p90, combinedStats.p90);
-                    html += renderRow('Last', visualStats?.last, audioStats?.last, combinedStats.last);
-                    html += `</tbody></table>`;
+                    const rows = [
+                        { label: 'Attempts', values: [visualStats?.count, audioStats?.count, combinedStats.count], suffix: '' },
+                        { label: 'Active days', values: [visualDays, audioDays, combinedDays], suffix: '' },
+                        { label: 'Best', values: [visualStats?.best, audioStats?.best, combinedStats.best], suffix: ' ms' },
+                        { label: 'Average', values: [visualStats?.avg, audioStats?.avg, combinedStats.avg], suffix: ' ms' },
+                        { label: 'Median', values: [visualStats?.median, audioStats?.median, combinedStats.median], suffix: ' ms' },
+                        { label: 'Std Dev', values: [visualStats?.stdDev, audioStats?.stdDev, combinedStats.stdDev], suffix: ' ms' },
+                        { label: 'P10', values: [visualStats?.p10, audioStats?.p10, combinedStats.p10], suffix: ' ms' },
+                        { label: 'P25', values: [visualStats?.p25, audioStats?.p25, combinedStats.p25], suffix: ' ms' },
+                        { label: 'P75', values: [visualStats?.p75, audioStats?.p75, combinedStats.p75], suffix: ' ms' },
+                        { label: 'P90', values: [visualStats?.p90, audioStats?.p90, combinedStats.p90], suffix: ' ms' },
+                        { label: 'Last', values: [visualStats?.last, audioStats?.last, combinedStats.last], suffix: ' ms' },
+                    ];
+                    
+                    const meta = this.buildStatsMetaHTML([
+                        { label: 'Period', value: periodLabel },
+                        { label: 'Mode', value: 'Mode comparison' }
+                    ]);
                     
                     this.periodStatsTitle.textContent = 'Mode comparison';
-                    this.periodStatsBody.innerHTML = html;
+                    this.periodStatsBody.innerHTML = meta + this.buildStatsTableHTML(rows, 'both');
                     
                     this.globalHistogramTitle.textContent = 'Result distribution for the period (all modes)';
                     this.renderGlobalHistogram(combinedTimes);
@@ -2044,7 +2390,7 @@
                 
                 if (!stats) {
                     this.periodStatsTitle.textContent = `Detailed statistics — ${modeLabel}`;
-                    this.periodStatsBody.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No data for the selected period</div>';
+                    this.periodStatsBody.innerHTML = `<div class="empty-state">No data for the selected period</div>`;
                     this.globalHistogramBars.innerHTML = '';
                     this.globalHistogramLabels.innerHTML = '';
                     this.globalHistogramTitle.textContent = `Result distribution for the period — ${modeLabel}`;
@@ -2053,55 +2399,27 @@
                 
                 const uniqueDays = this.getUniqueDaysForResults(filterMode === 'visual' ? visualResults : audioResults);
                 
-                let html = `
-                    <div class="period-stat-item">
-                        <span class="period-stat-label">Period:</span>
-                        <span class="period-stat-value">${periodLabel}</span>
-                    </div>
-                    <div class="period-stat-item">
-                        <span class="period-stat-label">Mode:</span>
-                        <span class="period-stat-value">${modeLabel}</span>
-                    </div>
-                    <div class="period-stat-item">
-                        <span class="period-stat-label">Attempts:</span>
-                        <span class="period-stat-value">${stats.count}</span>
-                    </div>
-                    <div class="period-stat-item">
-                        <span class="period-stat-label">Active days:</span>
-                        <span class="period-stat-value">${uniqueDays}</span>
-                    </div>
-                    <div class="period-stat-item">
-                        <span class="period-stat-label">Best:</span>
-                        <span class="period-stat-value">${stats.best.toFixed(0)} ms</span>
-                    </div>
-                    <div class="period-stat-item">
-                        <span class="period-stat-label">Average:</span>
-                        <span class="period-stat-value">${stats.avg.toFixed(0)} ms</span>
-                    </div>
-                    <div class="period-stat-item">
-                        <span class="period-stat-label">Median:</span>
-                        <span class="period-stat-value">${stats.median.toFixed(0)} ms</span>
-                    </div>
-                    <div class="period-stat-item">
-                        <span class="period-stat-label">Std Dev:</span>
-                        <span class="period-stat-value">${stats.stdDev.toFixed(0)} ms</span>
-                    </div>
-                    <div class="period-stat-item">
-                        <span class="period-stat-label">P25 / P75:</span>
-                        <span class="period-stat-value">${stats.p25.toFixed(0)} / ${stats.p75.toFixed(0)} ms</span>
-                    </div>
-                    <div class="period-stat-item">
-                        <span class="period-stat-label">P10 / P90:</span>
-                        <span class="period-stat-value">${stats.p10.toFixed(0)} / ${stats.p90.toFixed(0)} ms</span>
-                    </div>
-                    <div class="period-stat-item">
-                        <span class="period-stat-label">Last:</span>
-                        <span class="period-stat-value">${stats.last.toFixed(0)} ms</span>
-                    </div>
-                `;
+                const rows = [
+                    { label: 'Attempts', values: [stats.count], suffix: '' },
+                    { label: 'Active days', values: [uniqueDays], suffix: '' },
+                    { label: 'Best', values: [stats.best], suffix: ' ms' },
+                    { label: 'Average', values: [stats.avg], suffix: ' ms' },
+                    { label: 'Median', values: [stats.median], suffix: ' ms' },
+                    { label: 'Std Dev', values: [stats.stdDev], suffix: ' ms' },
+                    { label: 'P10', values: [stats.p10], suffix: ' ms' },
+                    { label: 'P25', values: [stats.p25], suffix: ' ms' },
+                    { label: 'P75', values: [stats.p75], suffix: ' ms' },
+                    { label: 'P90', values: [stats.p90], suffix: ' ms' },
+                    { label: 'Last', values: [stats.last], suffix: ' ms' },
+                ];
+                
+                const meta = this.buildStatsMetaHTML([
+                    { label: 'Period', value: periodLabel },
+                    { label: 'Mode', value: modeLabel }
+                ]);
                 
                 this.periodStatsTitle.textContent = `Detailed statistics — ${modeLabel}`;
-                this.periodStatsBody.innerHTML = html;
+                this.periodStatsBody.innerHTML = meta + this.buildStatsTableHTML(rows, 'single');
                 
                 this.globalHistogramTitle.textContent = `Result distribution for the period — ${modeLabel}`;
                 this.renderGlobalHistogram(times);
@@ -2225,7 +2543,6 @@
                             imported++;
                         }
                         this.saveAllResults(mode);
-                        this.updateGlobalModalModeCounts();
                         this.updateGlobalStatsSummary();
                         alert(`Imported results: ${imported}`);
                     } catch (err) {
@@ -2298,7 +2615,6 @@
                 this.data.visual.dailyAttempts = [];
                 this.data.audio.dailyAttempts = [];
                 
-                this.updateGlobalModalModeCounts();
                 this.updateGlobalStatsSummary();
                 this.updateDailyPanel();
                 alert('All data has been successfully deleted.');
