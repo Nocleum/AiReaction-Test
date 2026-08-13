@@ -23,8 +23,6 @@ Track your performance in real-time:
 - Last result with trend indicator
 - Live histogram distribution
 
-![Session Stats](./screenshots/session-stats.png)
-
 ### 🔥 Daily Challenge
 Compete with yourself every day:
 - Complete 5 attempts per day
@@ -33,8 +31,6 @@ Compete with yourself every day:
 - See progress bar for daily completion
 - Browse history of past daily challenges
 - Compare last 7 days performance at a glance
-
-![Daily Challenge](./screenshots/daily-challenge.png)
 
 ### 🌈 Color Themes
 Choose from multiple interface palettes:
@@ -45,8 +41,6 @@ Choose from multiple interface palettes:
 - Neon
 - Toxic Green
 - Custom theme editor
-
-![Color Themes](./screenshots/color-themes.png)
 
 ### 📈 Global Statistics
 Advanced analytics across all sessions:
@@ -66,8 +60,6 @@ Fine-tune your testing experience:
 - **Signal Delay**: Min/max waiting time before the signal
 - **Reaction Boundaries**: Define valid reaction time range
 - **Histogram Range**: Set min/max values and number of bins for session histogram
-
-![Settings Panel](./screenshots/settings-panel.png)
 
 ## Usage
 
@@ -117,19 +109,6 @@ Restore your progress from a previously exported CSV file.
 ### Reset Options
 - **Reset Session**: Clear current session statistics (histogram data preserved)
 - **Reset Global Data**: Delete all saved results and history (use with caution!)
-
-## Screenshots
-
-> Add your screenshots in the `screenshots/` directory:
-
-| Screenshot | Description |
-|------------|-------------|
-| `main-interface.png` | Main test interface showing the reaction area |
-| `session-stats.png` | Session statistics panel with histogram |
-| `daily-challenge.png` | Daily challenge panel with streak tracker |
-| `color-themes.png` | Theme selector showing different color palettes |
-| `global-stats.png` | Extended global statistics modal |
-| `settings-panel.png` | Settings configuration panel |
 
 ## Browser Compatibility
 
