@@ -15,7 +15,9 @@
 </p>
 
 <p align="center">
-  <img src="./screenshots/main-interface.png" alt="Main Interface" width="700">
+  <a href="https://nocleum.github.io/AiReaction-Test/">
+    <img src="./screenshots/main-interface.png" alt="Main Interface" width="700">
+  </a>
 </p>
 
 ---
