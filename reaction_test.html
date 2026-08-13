@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тест скорости реакции</title>
+    <title>Reaction Speed Test</title>
     <style>
         * {
             margin: 0; padding: 0; box-sizing: border-box;
@@ -20,6 +20,15 @@
         #reactionTest.waiting { background-color: #ff0000; }
         #reactionTest.ready { background-color: #00ff00; }
         #reactionTest.too-early, #reactionTest.outlier { background-color: #ff6600; }
+        
+        .watermark {
+            position: fixed; bottom: 12px; left: 16px;
+            z-index: 20; pointer-events: none; user-select: none;
+            font-size: 0.72rem; font-weight: 600;
+            letter-spacing: 1.2px; text-transform: uppercase;
+            color: #ffffff; opacity: 0.28;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+        }
         
         .left-panels {
             position: absolute; top: 20px; left: 20px;
@@ -574,65 +583,65 @@
     <div class="left-panels">
         <div class="panel" id="settingsPanel">
             <div class="panel-header">
-                <h3>Настройки</h3>
-                <button class="panel-toggle" data-panel="settingsPanel" title="Свернуть/развернуть панель">▼</button>
+                <h3>Settings</h3>
+                <button class="panel-toggle" data-panel="settingsPanel" title="Collapse/expand panel">▼</button>
             </div>
             <div class="panel-content">
                 <div class="setting-group">
-                    <label>Режим теста:</label>
+                    <label>Test mode:</label>
                     <div class="radio-group">
                         <input type="radio" id="visual" name="mode" value="visual" checked>
-                        <label for="visual" class="radio-label">Визуальный</label>
+                        <label for="visual" class="radio-label">Visual</label>
                         <input type="radio" id="audio" name="mode" value="audio">
-                        <label for="audio" class="radio-label">Звуковой</label>
+                        <label for="audio" class="radio-label">Audio</label>
                     </div>
                 </div>
                 <div class="setting-group">
-                    <label for="paletteSelect">Цветовая палитра:</label>
-                    <select id="paletteSelect" class="palette-select" title="Выберите цветовую схему интерфейса">
-                        <option value="original">Классика</option>
-                        <option value="monochrome">Чёрный и Белый</option>
-                        <option value="ocean">Море</option>
-                        <option value="sunset">Закат</option>
-                        <option value="neon">Неон</option>
-                        <option value="toxicGreen">Зеленый Яд</option>
-                        <option value="custom">Своя тема</option>
+                    <label for="paletteSelect">Color palette:</label>
+                    <select id="paletteSelect" class="palette-select" title="Choose the interface color scheme">
+                        <option value="original">Classic</option>
+                        <option value="monochrome">Black & White</option>
+                        <option value="ocean">Ocean</option>
+                        <option value="sunset">Sunset</option>
+                        <option value="neon">Neon</option>
+                        <option value="toxicGreen">Toxic Green</option>
+                        <option value="custom">Custom Theme</option>
                     </select>
                     <div class="palette-preview">
-                        <div class="palette-swatch" id="swatchWait" title="Ожидание сигнала"></div>
-                        <div class="palette-swatch" id="swatchReady" title="Сигнал (нажатие)"></div>
-                        <div class="palette-swatch" id="swatchEarly" title="Слишком рано / Выброс"></div>
-                        <div class="palette-swatch" id="swatchIdle" title="Простой / Результат"></div>
+                        <div class="palette-swatch" id="swatchWait" title="Waiting for signal"></div>
+                        <div class="palette-swatch" id="swatchReady" title="Signal (press)"></div>
+                        <div class="palette-swatch" id="swatchEarly" title="Too early / Outlier"></div>
+                        <div class="palette-swatch" id="swatchIdle" title="Idle / Result"></div>
                     </div>
-                    <button class="edit-theme-btn" id="editThemeBtn" title="Открыть редактор пользовательской темы">✎ Редактировать тему</button>
+                    <button class="edit-theme-btn" id="editThemeBtn" title="Open the custom theme editor">✎ Edit theme</button>
                 </div>
                 <div class="setting-group">
-                    <label>Задержка сигнала:</label>
+                    <label>Signal delay:</label>
                     <div class="delay-inputs">
-                        <input type="number" id="delayMin" min="500" max="10000" step="100" value="2000" aria-label="Минимальная задержка" title="Минимальная задержка перед сигналом. Допустимо: 500–10000 мс. Шаг: 100 мс.">
+                        <input type="number" id="delayMin" min="500" max="10000" step="100" value="2000" aria-label="Minimum delay" title="Minimum delay before the signal. Allowed: 500–10000 ms. Step: 100 ms.">
                         <span class="delay-sep">—</span>
-                        <input type="number" id="delayMax" min="500" max="20000" step="100" value="6000" aria-label="Максимальная задержка" title="Максимальная задержка перед сигналом. Допустимо: 500–20000 мс. Должно быть ≥ минимума + 500 мс.">
-                        <span class="delay-unit">мс</span>
+                        <input type="number" id="delayMax" min="500" max="20000" step="100" value="6000" aria-label="Maximum delay" title="Maximum delay before the signal. Allowed: 500–20000 ms. Must be ≥ minimum + 500 ms.">
+                        <span class="delay-unit">ms</span>
                     </div>
                 </div>
                 <div class="setting-group">
-                    <label>Границы реакции:</label>
+                    <label>Reaction bounds:</label>
                     <div class="bounds-inputs">
-                        <input type="number" id="boundMin" min="0" max="125" step="5" value="75" aria-label="Минимальная граница" title="Минимальная граница реакции. Допустимо: 0–125 мс. Шаг: 5 мс. Результаты ниже — считаются выбросами.">
+                        <input type="number" id="boundMin" min="0" max="125" step="5" value="75" aria-label="Minimum bound" title="Minimum reaction bound. Allowed: 0–125 ms. Step: 5 ms. Results below this are considered outliers.">
                         <span class="bounds-sep">—</span>
-                        <input type="number" id="boundMax" min="270" max="500" step="5" value="300" aria-label="Максимальная граница" title="Максимальная граница реакции. Допустимо: 270–500 мс. Шаг: 5 мс. Результаты выше — считаются выбросами.">
-                        <span class="bounds-unit">мс</span>
+                        <input type="number" id="boundMax" min="270" max="500" step="5" value="300" aria-label="Maximum bound" title="Maximum reaction bound. Allowed: 270–500 ms. Step: 5 ms. Results above this are considered outliers.">
+                        <span class="bounds-unit">ms</span>
                     </div>
                 </div>
                 <div class="setting-group">
-                    <label>Гистограмма сессии:</label>
+                    <label>Session histogram:</label>
                     <div class="histogram-inputs">
-                        <input type="number" id="histMin" min="0" max="290" step="10" value="0" aria-label="Нижний предел гистограммы" title="Нижний предел диапазона гистограммы. Допустимо: 0–290 мс. Шаг: 10 мс.">
+                        <input type="number" id="histMin" min="0" max="290" step="10" value="0" aria-label="Histogram lower bound" title="Lower bound of the histogram range. Allowed: 0–290 ms. Step: 10 ms.">
                         <span class="histogram-sep">—</span>
-                        <input type="number" id="histMax" min="10" max="1000" step="10" value="300" aria-label="Верхний предел гистограммы" title="Верхний предел диапазона гистограммы. Допустимо: 10–1000 мс. Должно быть > минимума.">
+                        <input type="number" id="histMax" min="10" max="1000" step="10" value="300" aria-label="Histogram upper bound" title="Upper bound of the histogram range. Allowed: 10–1000 ms. Must be > minimum.">
                         <span class="histogram-sep">/</span>
-                        <input type="number" id="histBins" min="5" max="15" step="1" value="10" aria-label="Количество бинов" title="Количество столбцов (бинов) гистограммы. Допустимо: 5–15.">
-                        <span class="histogram-unit">мс</span>
+                        <input type="number" id="histBins" min="5" max="15" step="1" value="10" aria-label="Number of bins" title="Number of histogram bars (bins). Allowed: 5–15.">
+                        <span class="histogram-unit">ms</span>
                     </div>
                 </div>
             </div>
@@ -642,72 +651,72 @@
     <div class="right-panels">
         <div class="panel" id="dailyPanel">
             <div class="panel-header">
-                <h3>Испытание дня</h3>
-                <button class="panel-toggle" data-panel="dailyPanel" title="Свернуть/развернуть панель">▼</button>
+                <h3>Daily Challenge</h3>
+                <button class="panel-toggle" data-panel="dailyPanel" title="Collapse/expand panel">▼</button>
             </div>
             <div class="panel-content">
                 <div class="daily-panel-stats">
                     <div class="daily-stat-box">
-                        <div class="label">Серия</div>
+                        <div class="label">Streak</div>
                         <div class="value streak" id="dailyStreakValue">0 🔥</div>
                     </div>
                     <div class="daily-stat-box">
-                        <div class="label">Рекорд</div>
+                        <div class="label">Best</div>
                         <div class="value gold" id="dailyBestValue">-</div>
                     </div>
                 </div>
                 <div class="daily-progress">
-                    <div>Сегодня: <span id="dailyCount">0</span>/5</div>
+                    <div>Today: <span id="dailyCount">0</span>/5</div>
                     <div class="daily-progress-bar"><div class="daily-progress-fill" id="dailyFill" style="width: 0%"></div></div>
                 </div>
                 <div class="last-7-days">
-                    <div class="last-7-days-title">Последние 7 дней</div>
+                    <div class="last-7-days-title">Last 7 days</div>
                     <div class="last-7-days-bars" id="last7DaysBars"></div>
                 </div>
                 <div class="daily-actions">
-                    <button class="stats-btn" id="dailyToggleBtn" title="Запустить режим ежедневного испытания (5 попыток)">Старт</button>
-                    <button class="stats-btn" id="dailyResetBtn" title="Сбросить текущие попытки сегодня">Заново</button>
+                    <button class="stats-btn" id="dailyToggleBtn" title="Start daily challenge mode (5 attempts)">Start</button>
+                    <button class="stats-btn" id="dailyResetBtn" title="Reset today's current attempts">Reset</button>
                 </div>
                 <div class="daily-actions-row">
-                    <button class="stats-btn" id="historyBtn" title="Посмотреть историю ежедневных испытаний" style="width: 100%;">История</button>
+                    <button class="stats-btn" id="historyBtn" title="View daily challenge history" style="width: 100%;">History</button>
                 </div>
             </div>
         </div>
 
         <div class="panel" id="statsPanel">
             <div class="panel-header">
-                <h3>Статистика сессии</h3>
-                <button class="panel-toggle" data-panel="statsPanel" title="Свернуть/развернуть панель">▼</button>
+                <h3>Session Statistics</h3>
+                <button class="panel-toggle" data-panel="statsPanel" title="Collapse/expand panel">▼</button>
             </div>
             <div class="panel-content">
                 <table class="stats-table">
                     <tr>
-                        <td class="label">Попыток</td>
+                        <td class="label">Attempts</td>
                         <td class="val" id="attemptsCount">0</td>
                         <td class="trend-cell"></td>
                     </tr>
                     <tr>
-                        <td class="label">Лучший</td>
+                        <td class="label">Best</td>
                         <td class="val" id="bestResult">-</td>
                         <td class="trend-cell"></td>
                     </tr>
                     <tr>
-                        <td class="label">Средний</td>
+                        <td class="label">Average</td>
                         <td class="val" id="averageResult">-</td>
                         <td class="trend-cell"></td>
                     </tr>
                     <tr>
-                        <td class="label">Медиана</td>
+                        <td class="label">Median</td>
                         <td class="val" id="medianResult">-</td>
                         <td class="trend-cell"></td>
                     </tr>
                     <tr>
-                        <td class="label">Отклонение</td>
+                        <td class="label">Std Dev</td>
                         <td class="val" id="stdDevResult">-</td>
                         <td class="trend-cell"></td>
                     </tr>
                     <tr>
-                        <td class="label">Последний</td>
+                        <td class="label">Last</td>
                         <td class="val" id="lastResult">-</td>
                         <td class="trend-cell"><span class="trend same" id="lastTrend">=</span></td>
                     </tr>
@@ -715,125 +724,127 @@
                 <div class="histogram-bars" id="histogramBars" style="height: 100px; margin-top: 15px;"></div>
                 <div class="histogram-labels" id="histogramLabels"></div>
                 <div class="stats-actions">
-                    <button class="stats-btn" id="resetSessionBtn" title="Сбросить статистику текущей сессии">Сбросить сессию</button>
+                    <button class="stats-btn" id="resetSessionBtn" title="Reset current session statistics">Reset session</button>
                 </div>
             </div>
         </div>
 
         <div class="panel" id="globalPanel">
             <div class="panel-header">
-                <h3>Глобальная статистика</h3>
-                <button class="panel-toggle" data-panel="globalPanel" title="Свернуть/развернуть панель">▼</button>
+                <h3>Global Statistics</h3>
+                <button class="panel-toggle" data-panel="globalPanel" title="Collapse/expand panel">▼</button>
             </div>
             <div class="panel-content">
                 <div class="global-stats-grid">
                     <div class="global-stat-card">
-                        <div class="label">Активных дней</div>
+                        <div class="label">Active days</div>
                         <div class="value" id="globalActiveDays">0</div>
                     </div>
                     <div class="global-stat-card">
-                        <div class="label">Средний</div>
+                        <div class="label">Average</div>
                         <div class="value blue" id="globalAvgResult">-</div>
                     </div>
                     <div class="global-stat-card">
-                        <div class="label">Всего попыток</div>
+                        <div class="label">Total attempts</div>
                         <div class="value" id="globalTotalAttempts">0</div>
                     </div>
                     <div class="global-stat-card">
-                        <div class="label">Отклонение</div>
+                        <div class="label">Std Dev</div>
                         <div class="value" id="globalStdDevResult">-</div>
                     </div>
                 </div>
                 <div class="stats-actions">
-                    <button class="stats-btn" id="openGlobalStatsBtn" title="Открыть расширенную статистику" style="width: 100%;">Подробнее</button>
+                    <button class="stats-btn" id="openGlobalStatsBtn" title="Open extended statistics" style="width: 100%;">Details</button>
                 </div>
             </div>
         </div>
     </div>
     
     <div id="reactionTest">
-        <div class="message" id="message">Нажмите для начала</div>
+        <div class="message" id="message">Click to start</div>
         <div class="result" id="result"></div>
     </div>
     
     <div class="controls">
-        <button id="stopBtn" class="btn" disabled title="Остановить текущую попытку (Esc)">Остановить</button>
+        <button id="stopBtn" class="btn" disabled title="Stop the current attempt (Esc)">Stop</button>
     </div>
+
+    <div class="watermark" id="watermark">AiReaction Test</div>
 
     <input type="file" id="importFileInput" class="import-file-input" accept=".csv">
 
     <div class="modal-overlay" id="historyModal">
         <div class="modal">
-            <h2>История ежедневных испытаний <button class="modal-close" id="historyClose">×</button></h2>
+            <h2>Daily Challenge History <button class="modal-close" id="historyClose">×</button></h2>
             <ul class="history-list" id="historyList"></ul>
         </div>
     </div>
 
     <div class="modal-overlay" id="dailyResultModal">
         <div class="modal">
-            <h2>Результат дня <button class="modal-close" id="dailyResultClose">×</button></h2>
+            <h2>Daily Result <button class="modal-close" id="dailyResultClose">×</button></h2>
             <div class="daily-result-big" id="dailyResultContent"></div>
         </div>
     </div>
 
     <div class="modal-overlay" id="sessionResetModal">
         <div class="modal">
-            <h2>Сброс сессии <button class="modal-close" id="sessionResetClose">×</button></h2>
+            <h2>Session Reset <button class="modal-close" id="sessionResetClose">×</button></h2>
             <div class="modal-body">
-                Сбросить статистику текущей сессии для активного режима? Данные гистограммы за всё время останутся.
+                Reset session statistics for the active mode? All-time histogram data will be kept.
             </div>
             <div class="modal-actions">
-                <button class="btn" id="sessionResetCancel">Отмена</button>
-                <button class="btn danger" id="sessionResetConfirm">Сбросить</button>
+                <button class="btn" id="sessionResetCancel">Cancel</button>
+                <button class="btn danger" id="sessionResetConfirm">Reset</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="globalStatsModal">
         <div class="modal" style="max-width: 750px;">
-            <h2>Расширенная глобальная статистика <button class="modal-close" id="globalStatsClose">×</button></h2>
+            <h2>Extended Global Statistics <button class="modal-close" id="globalStatsClose">×</button></h2>
             <div class="modal-body">
                 <div class="mode-filter" id="globalModalModeFilter">
-                    <button class="mode-filter-btn active" data-global-mode="visual" title="Статистика визуального режима">Визуальный<span class="mode-count" id="globalModalVisualCount"></span></button>
-                    <button class="mode-filter-btn" data-global-mode="audio" title="Статистика звукового режима">Звуковой<span class="mode-count" id="globalModalAudioCount"></span></button>
-                    <button class="mode-filter-btn" data-global-mode="both" title="Сравнение обоих режимов">Оба<span class="mode-count" id="globalModalBothCount"></span></button>
+                    <button class="mode-filter-btn active" data-global-mode="visual" title="Visual mode statistics">Visual<span class="mode-count" id="globalModalVisualCount"></span></button>
+                    <button class="mode-filter-btn" data-global-mode="audio" title="Audio mode statistics">Audio<span class="mode-count" id="globalModalAudioCount"></span></button>
+                    <button class="mode-filter-btn" data-global-mode="both" title="Comparison of both modes">Both<span class="mode-count" id="globalModalBothCount"></span></button>
                 </div>
                 
                 <div class="period-selector">
-                    <button class="period-btn active" data-days="7">7 дней</button>
-                    <button class="period-btn" data-days="30">30 дней</button>
-                    <button class="period-btn" data-days="90">90 дней</button>
-                    <button class="period-btn" data-days="all">Всё время</button>
-                    <button class="period-btn" data-days="custom">Свой период</button>
+                    <button class="period-btn active" data-days="7">7 days</button>
+                    <button class="period-btn" data-days="30">30 days</button>
+                    <button class="period-btn" data-days="90">90 days</button>
+                    <button class="period-btn" data-days="all">All time</button>
+                    <button class="period-btn" data-days="custom">Custom</button>
                 </div>
                 
                 <div class="period-stats-form" id="customPeriodForm" style="display: none;">
                     <div class="form-row">
-                        <label>Начало:</label>
+                        <label>Start:</label>
                         <input type="datetime-local" id="periodStart">
                     </div>
                     <div class="form-row">
-                        <label>Конец:</label>
+                        <label>End:</label>
                         <input type="datetime-local" id="periodEnd">
                     </div>
-                    <button class="btn" id="applyCustomPeriod" style="width: 100%;">Применить</button>
+                    <button class="btn" id="applyCustomPeriod" style="width: 100%;">Apply</button>
                 </div>
                 
                 <div class="period-stats-result" id="periodStatsResult">
-                    <h4 id="periodStatsTitle">Детальная статистика</h4>
+                    <h4 id="periodStatsTitle">Detailed statistics</h4>
                     <div id="periodStatsBody"></div>
                 </div>
                 
                 <div class="global-histogram">
-                    <h4 id="globalHistogramTitle">Распределение результатов за период</h4>
+                    <h4 id="globalHistogramTitle">Result distribution for the period</h4>
                     <div class="histogram-bars" id="globalHistogramBars" style="height: 120px;"></div>
                     <div class="histogram-labels" id="globalHistogramLabels"></div>
                 </div>
                 
                 <div class="global-stats-actions">
-                    <button class="btn small" id="exportGlobalCsvBtn" title="Экспортировать все результаты в CSV">Экспорт CSV</button>
-                    <button class="btn small" id="importGlobalCsvBtn" title="Импортировать результаты из CSV">Импорт CSV</button>
-                    <button class="btn small danger" id="resetGlobalDataBtn" title="Удалить все сохранённые результаты">Сбросить данные</button>
+                    <button class="btn small" id="exportGlobalCsvBtn" title="Export all results to CSV">Export CSV</button>
+                    <button class="btn small" id="importGlobalCsvBtn" title="Import results from CSV">Import CSV</button>
+                    <button class="btn small danger" id="resetGlobalDataBtn" title="Delete all saved results">Reset data</button>
                 </div>
             </div>
         </div>
@@ -841,55 +852,55 @@
 
     <div class="modal-overlay" id="globalResetModal">
         <div class="modal">
-            <h2>Сброс всех данных <button class="modal-close" id="globalResetClose">×</button></h2>
+            <h2>Reset All Data <button class="modal-close" id="globalResetClose">×</button></h2>
             <div class="modal-body">
-                <strong style="color:#ff6666;">Внимание!</strong> Будут удалены:
+                <strong style="color:#ff6666;">Warning!</strong> The following will be deleted:
                 <ul style="margin: 10px 0 10px 20px; line-height: 1.8;">
-                    <li>Все результаты тестов</li>
-                    <li>Вся история ежедневных испытаний</li>
+                    <li>All test results</li>
+                    <li>All daily challenge history</li>
                 </ul>
-                Настройки интерфейса и пользовательская тема <strong>сохранятся</strong>. Это действие нельзя отменить.
+                Interface settings and the custom theme <strong>will be preserved</strong>. This action cannot be undone.
             </div>
             <div class="modal-actions">
-                <button class="btn" id="globalResetCancel">Отмена</button>
-                <button class="btn danger" id="globalResetConfirm">Удалить всё</button>
+                <button class="btn" id="globalResetCancel">Cancel</button>
+                <button class="btn danger" id="globalResetConfirm">Delete everything</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="customThemeModal">
         <div class="modal">
-            <h2>Редактор темы <button class="modal-close" id="customThemeClose">×</button></h2>
+            <h2>Theme Editor <button class="modal-close" id="customThemeClose">×</button></h2>
             <div class="modal-body">
                 <div class="custom-theme-editor">
                     <div class="color-picker-group">
                         <div class="color-picker-item">
-                            <label>Ожидание сигнала:</label>
-                            <div class="color-picker-wrapper" title="Цвет фона во время ожидания сигнала (до нажатия)">
+                            <label>Waiting for signal:</label>
+                            <div class="color-picker-wrapper" title="Background color while waiting for the signal (before pressing)">
                                 <div class="color-picker-preview" id="previewWait" style="background:#ff0000"></div>
                                 <input type="color" id="customWait" value="#ff0000">
                             </div>
                             <span class="color-picker-value" id="customWaitValue">#ff0000</span>
                         </div>
                         <div class="color-picker-item">
-                            <label>Сигнал (нажатие):</label>
-                            <div class="color-picker-wrapper" title="Цвет фона в момент появления сигнала (для визуального режима)">
+                            <label>Signal (press):</label>
+                            <div class="color-picker-wrapper" title="Background color when the signal appears (for visual mode)">
                                 <div class="color-picker-preview" id="previewReady" style="background:#00ff00"></div>
                                 <input type="color" id="customReady" value="#00ff00">
                             </div>
                             <span class="color-picker-value" id="customReadyValue">#00ff00</span>
                         </div>
                         <div class="color-picker-item">
-                            <label>Слишком рано / Выброс:</label>
-                            <div class="color-picker-wrapper" title="Цвет фона при слишком раннем нажатии или результате-выбросе">
+                            <label>Too early / Outlier:</label>
+                            <div class="color-picker-wrapper" title="Background color on a too-early press or an outlier result">
                                 <div class="color-picker-preview" id="previewEarly" style="background:#ff6600"></div>
                                 <input type="color" id="customEarly" value="#ff6600">
                             </div>
                             <span class="color-picker-value" id="customEarlyValue">#ff6600</span>
                         </div>
                         <div class="color-picker-item">
-                            <label>Простой / Результат:</label>
-                            <div class="color-picker-wrapper" title="Цвет фона в состоянии простоя и при отображении результата">
+                            <label>Idle / Result:</label>
+                            <div class="color-picker-wrapper" title="Background color in the idle state and when showing a result">
                                 <div class="color-picker-preview" id="previewIdle" style="background:#0066cc"></div>
                                 <input type="color" id="customIdle" value="#0066cc">
                             </div>
@@ -897,8 +908,8 @@
                         </div>
                     </div>
                     <div class="theme-actions">
-                        <button class="btn" id="customThemeCancel">Отмена</button>
-                        <button class="btn" id="customThemeSave">Сохранить тему</button>
+                        <button class="btn" id="customThemeCancel">Cancel</button>
+                        <button class="btn" id="customThemeSave">Save theme</button>
                     </div>
                 </div>
             </div>
@@ -907,12 +918,12 @@
 
     <script>
         const PALETTES = {
-            original: { name: 'Классика', wait: '#ff0000', ready: '#00ff00', early: '#ff6600', idle: '#0066cc' },
-            monochrome: { name: 'Чёрный и Белый', wait: '#000000', ready: '#ffffff', early: '#888888', idle: '#333333' },
-            ocean: { name: 'Море', wait: '#003366', ready: '#00ccff', early: '#ff9933', idle: '#006699' },
-            sunset: { name: 'Закат', wait: '#8b0000', ready: '#ff69b4', early: '#ff4500', idle: '#4b0082' },
-            neon: { name: 'Неон', wait: '#ff00ff', ready: '#00ff00', early: '#ffff00', idle: '#000080' },
-            toxicGreen: { name: 'Зеленый Яд', wait: '#000000', ready: '#39ff14', early: '#335511', idle: '#0a0a0a' },
+            original: { name: 'Classic', wait: '#ff0000', ready: '#00ff00', early: '#ff6600', idle: '#0066cc' },
+            monochrome: { name: 'Black & White', wait: '#000000', ready: '#ffffff', early: '#888888', idle: '#333333' },
+            ocean: { name: 'Ocean', wait: '#003366', ready: '#00ccff', early: '#ff9933', idle: '#006699' },
+            sunset: { name: 'Sunset', wait: '#8b0000', ready: '#ff69b4', early: '#ff4500', idle: '#4b0082' },
+            neon: { name: 'Neon', wait: '#ff00ff', ready: '#00ff00', early: '#ffff00', idle: '#000080' },
+            toxicGreen: { name: 'Toxic Green', wait: '#000000', ready: '#39ff14', early: '#335511', idle: '#0a0a0a' },
         };
 
         const Utils = {
@@ -955,7 +966,7 @@
             },
             toLocalDateTimeString(timestamp) {
                 const d = new Date(timestamp);
-                return d.toLocaleString('ru-RU', {
+                return d.toLocaleString('en-US', {
                     year: 'numeric', month: '2-digit', day: '2-digit',
                     hour: '2-digit', minute: '2-digit'
                 });
@@ -1009,6 +1020,7 @@
                 this.reactionTest = document.getElementById('reactionTest');
                 this.message = document.getElementById('message');
                 this.result = document.getElementById('result');
+                this.watermark = document.getElementById('watermark');
                 this.stopBtn = document.getElementById('stopBtn');
                 this.attemptsCountEl = document.getElementById('attemptsCount');
                 this.bestResultEl = document.getElementById('bestResult');
@@ -1163,10 +1175,10 @@
                         this.customIdle.value = theme.idle;
                         this.updateColorPickerValues();
                     } else {
-                        PALETTES.custom = { name: 'Своя тема', wait: '#ff0000', ready: '#00ff00', early: '#ff6600', idle: '#0066cc' };
+                        PALETTES.custom = { name: 'Custom Theme', wait: '#ff0000', ready: '#00ff00', early: '#ff6600', idle: '#0066cc' };
                     }
                 } catch (e) {
-                    PALETTES.custom = { name: 'Своя тема', wait: '#ff0000', ready: '#00ff00', early: '#ff6600', idle: '#0066cc' };
+                    PALETTES.custom = { name: 'Custom Theme', wait: '#ff0000', ready: '#00ff00', early: '#ff6600', idle: '#0066cc' };
                 }
             }
 
@@ -1246,12 +1258,17 @@
                 const colors = stateColors[this.state] || stateColors.IDLE;
                 this.reactionTest.style.backgroundColor = colors.bg;
                 this.message.style.color = colors.text;
+                this.setWatermarkColor(colors.text);
                 if (this.state === 'RESULT') {
                     this.result.style.color = colors.text;
                 }
             }
 
             getCurrentPalette() { return PALETTES[this.currentPalette]; }
+
+            setWatermarkColor(color) {
+                if (this.watermark) this.watermark.style.color = color;
+            }
 
             getDelayRange() {
                 let min = parseInt(this.delayMinInput.value) || 2000;
@@ -1321,8 +1338,9 @@
                 const p = this.getCurrentPalette();
                 this.reactionTest.className = '';
                 this.reactionTest.style.backgroundColor = p.idle;
-                this.message.textContent = 'Нажмите для начала';
+                this.message.textContent = 'Click to start';
                 this.message.style.color = Utils.getTextColor(p.idle);
+                this.setWatermarkColor(Utils.getTextColor(p.idle));
                 this.result.style.display = 'none';
                 this.result.textContent = '';
                 this.result.style.color = '';
@@ -1399,13 +1417,13 @@
                     const startStr = this.periodStart.value;
                     const endStr = this.periodEnd.value;
                     if (!startStr || !endStr) {
-                        alert('Укажите начало и конец периода');
+                        alert('Please specify the start and end of the period');
                         return;
                     }
                     const start = new Date(startStr).getTime();
                     const end = new Date(endStr).getTime();
                     if (start >= end) {
-                        alert('Начало должно быть раньше конца');
+                        alert('Start must be before the end');
                         return;
                     }
                     this.globalStatsPeriod = { days: 'custom', start, end };
@@ -1517,7 +1535,7 @@
             toggleDailyMode() {
                 this.dailyMode = !this.dailyMode;
                 this.dailyToggleBtn.classList.toggle('active', this.dailyMode);
-                this.dailyToggleBtn.textContent = this.dailyMode ? 'Стоп' : 'Старт';
+                this.dailyToggleBtn.textContent = this.dailyMode ? 'Stop' : 'Start';
                 
                 const mode = this.getMode();
                 this.data[mode].dailyAttempts = [];
@@ -1542,7 +1560,7 @@
                 const allDaily = this.getAllDailyResults(mode);
                 if (allDaily.length > 0) {
                     const bestAvg = Math.min(...allDaily.map(r => r.average));
-                    this.dailyBestValue.textContent = `${bestAvg.toFixed(0)} мс`;
+                    this.dailyBestValue.textContent = `${bestAvg.toFixed(0)} ms`;
                 } else {
                     this.dailyBestValue.textContent = '-';
                 }
@@ -1586,7 +1604,7 @@
                     const key = Utils.getDateKey(d);
                     days.push({
                         key,
-                        label: d.toLocaleDateString('ru-RU', { weekday: 'short' }).slice(0, 2),
+                        label: d.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2),
                         avg: byDate[key] || null
                     });
                 }
@@ -1604,7 +1622,7 @@
                         </div>`;
                     }
                     const height = 20 + ((d.avg - minVal) / range) * 80;
-                    return `<div class="last-7-day" title="${d.key}: ${d.avg.toFixed(0)} мс">
+                    return `<div class="last-7-day" title="${d.key}: ${d.avg.toFixed(0)} ms">
                         <div class="last-7-day-bar" style="height:${height}%"></div>
                         <div class="last-7-day-label">${d.label}</div>
                     </div>`;
@@ -1654,7 +1672,7 @@
                     source.connect(this.audioContext.destination);
                     source.start();
                 } catch (error) {
-                    console.warn('Ошибка воспроизведения звука:', error);
+                    console.warn('Audio playback error:', error);
                 }
             }
 
@@ -1685,8 +1703,9 @@
                 const p = this.getCurrentPalette();
                 this.reactionTest.className = 'waiting';
                 this.reactionTest.style.backgroundColor = p.wait;
-                this.message.textContent = 'Ждите сигнала...';
+                this.message.textContent = 'Wait for the signal...';
                 this.message.style.color = Utils.getTextColor(p.wait);
+                this.setWatermarkColor(Utils.getTextColor(p.wait));
                 this.result.style.display = 'none';
             }
 
@@ -1696,13 +1715,15 @@
                 if (mode === 'visual') {
                     this.reactionTest.className = 'ready';
                     this.reactionTest.style.backgroundColor = p.ready;
-                    this.message.textContent = 'Нажмите!';
+                    this.message.textContent = 'Click!';
                     this.message.style.color = Utils.getTextColor(p.ready);
+                    this.setWatermarkColor(Utils.getTextColor(p.ready));
                 } else {
                     this.reactionTest.className = 'waiting';
                     this.reactionTest.style.backgroundColor = p.wait;
-                    this.message.textContent = 'Ждите сигнала...';
+                    this.message.textContent = 'Wait for the signal...';
                     this.message.style.color = Utils.getTextColor(p.wait);
+                    this.setWatermarkColor(Utils.getTextColor(p.wait));
                 }
             }
 
@@ -1787,8 +1808,9 @@
                 const p = this.getCurrentPalette();
                 this.reactionTest.className = 'outlier';
                 this.reactionTest.style.backgroundColor = p.early;
-                this.message.textContent = `Выброс: ${time.toFixed(0)} мс. Нажмите для новой попытки`;
+                this.message.textContent = `Outlier: ${time.toFixed(0)} ms. Click for a new attempt`;
                 this.message.style.color = Utils.getTextColor(p.early);
+                this.setWatermarkColor(Utils.getTextColor(p.early));
                 this.result.style.display = 'none';
             }
 
@@ -1840,44 +1862,44 @@
             }
 
             showDailyResultModal(avg, prevBest, isNewRecord, mode, attempts) {
-                const modeLabel = mode === 'visual' ? 'Визуальный' : 'Звуковой';
-                let html = `<div>Среднее за 5 попыток (${modeLabel}):</div>`;
-                html += `<div class="big-number">${avg.toFixed(0)} мс</div>`;
+                const modeLabel = mode === 'visual' ? 'Visual' : 'Audio';
+                let html = `<div>Average over 5 attempts (${modeLabel}):</div>`;
+                html += `<div class="big-number">${avg.toFixed(0)} ms</div>`;
                 if (prevBest !== null) {
                     const diff = avg - prevBest;
                     if (isNewRecord) {
-                        html += `<div class="comparison new-record">🏆 Новый рекорд! (было ${prevBest.toFixed(0)} мс, улучшение на ${Math.abs(diff).toFixed(0)} мс)</div>`;
+                        html += `<div class="comparison new-record">🏆 New record! (previous: ${prevBest.toFixed(0)} ms, improved by ${Math.abs(diff).toFixed(0)} ms)</div>`;
                     } else {
-                        html += `<div class="comparison">Лучший результат сегодня: ${prevBest.toFixed(0)} мс (разница: +${diff.toFixed(0)} мс)</div>`;
+                        html += `<div class="comparison">Today's best: ${prevBest.toFixed(0)} ms (difference: +${diff.toFixed(0)} ms)</div>`;
                     }
                 } else {
-                    html += `<div class="comparison new-record">🏆 Первый результат дня сохранён!</div>`;
+                    html += `<div class="comparison new-record">🏆 First result of the day saved!</div>`;
                 }
-                html += `<div style="margin-top:15px;font-size:0.85rem;color:rgba(255,255,255,0.6)">Попытки: ${attempts.map(t => t.toFixed(0)).join(', ')} мс</div>`;
+                html += `<div style="margin-top:15px;font-size:0.85rem;color:rgba(255,255,255,0.6)">Attempts: ${attempts.map(t => t.toFixed(0)).join(', ')} ms</div>`;
                 this.dailyResultContent.innerHTML = html;
                 this.dailyResultModal.classList.add('visible');
             }
 
             showHistory() {
                 const mode = this.getMode();
-                const modeLabel = mode === 'visual' ? 'визуального' : 'звукового';
+                const modeLabel = mode === 'visual' ? 'visual' : 'audio';
                 const results = this.getAllDailyResults(mode);
                 if (results.length === 0) {
-                    this.historyList.innerHTML = `<div class="history-empty">Пока нет сохранённых результатов для ${modeLabel} режима.<br>Пройдите ежедневное испытание, чтобы появиться здесь.</div>`;
+                    this.historyList.innerHTML = `<div class="history-empty">No saved results yet for the ${modeLabel} mode.<br>Complete the daily challenge to appear here.</div>`;
                 } else {
                     const bestAvg = Math.min(...results.map(r => r.average));
                     this.historyList.innerHTML = results.map(r => {
                         const date = new Date(r.timestamp);
-                        const dateStr = date.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' });
-                        const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                        const dateStr = date.toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' });
+                        const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                         const isBest = r.average === bestAvg;
                         return `
                             <li class="history-item ${isBest ? 'best' : ''}">
                                 <div>
                                     <div class="history-date">${dateStr}</div>
-                                    <div class="history-time">${timeStr}${isBest ? ' • 🏆 лучший' : ''}</div>
+                                    <div class="history-time">${timeStr}${isBest ? ' • 🏆 best' : ''}</div>
                                 </div>
-                                <div class="history-avg">${r.average.toFixed(0)} мс</div>
+                                <div class="history-avg">${r.average.toFixed(0)} ms</div>
                             </li>
                         `;
                     }).join('');
@@ -1952,13 +1974,13 @@
                 
                 let periodLabel = '';
                 if (this.globalStatsPeriod.days === 'custom') {
-                    const startDate = new Date(this.globalStatsPeriod.start).toLocaleDateString('ru-RU');
-                    const endDate = new Date(this.globalStatsPeriod.end).toLocaleDateString('ru-RU');
+                    const startDate = new Date(this.globalStatsPeriod.start).toLocaleDateString('en-US');
+                    const endDate = new Date(this.globalStatsPeriod.end).toLocaleDateString('en-US');
                     periodLabel = `${startDate} — ${endDate}`;
                 } else if (this.globalStatsPeriod.days === 'all') {
-                    periodLabel = 'Всё время';
+                    periodLabel = 'All time';
                 } else {
-                    periodLabel = `Последние ${this.globalStatsPeriod.days} дней`;
+                    periodLabel = `Last ${this.globalStatsPeriod.days} days`;
                 }
                 
                 if (filterMode === 'both') {
@@ -1968,15 +1990,15 @@
                     const combinedStats = this.computeStatsForTimes(combinedTimes);
                     
                     if (!combinedStats) {
-                        this.periodStatsTitle.textContent = 'Детальная статистика';
-                        this.periodStatsBody.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">Нет данных за выбранный период</div>';
+                        this.periodStatsTitle.textContent = 'Detailed statistics';
+                        this.periodStatsBody.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No data for the selected period</div>';
                         this.globalHistogramBars.innerHTML = '';
                         this.globalHistogramLabels.innerHTML = '';
-                        this.globalHistogramTitle.textContent = 'Распределение результатов за период';
+                        this.globalHistogramTitle.textContent = 'Result distribution for the period';
                         return;
                     }
                     
-                    const renderRow = (label, vVal, aVal, cVal, suffix = ' мс') => {
+                    const renderRow = (label, vVal, aVal, cVal, suffix = ' ms') => {
                         const vStr = vVal !== null && vVal !== undefined ? (typeof vVal === 'number' ? vVal.toFixed(0) + suffix : vVal) : '-';
                         const aStr = aVal !== null && aVal !== undefined ? (typeof aVal === 'number' ? aVal.toFixed(0) + suffix : aVal) : '-';
                         const cStr = cVal !== null && cVal !== undefined ? (typeof cVal === 'number' ? cVal.toFixed(0) + suffix : cVal) : '-';
@@ -1988,44 +2010,44 @@
                         </tr>`;
                     };
                     
-                    let html = `<div style="margin-bottom:8px;font-size:0.85rem;color:rgba(255,255,255,0.6)">Период: ${periodLabel}</div>`;
+                    let html = `<div style="margin-bottom:8px;font-size:0.85rem;color:rgba(255,255,255,0.6)">Period: ${periodLabel}</div>`;
                     html += `<table class="comparison-table">
                         <thead><tr>
-                            <th style="text-align:left">Показатель</th>
-                            <th>Визуальный</th>
-                            <th>Звуковой</th>
-                            <th style="color:#00ccff">Вместе</th>
+                            <th style="text-align:left">Metric</th>
+                            <th>Visual</th>
+                            <th>Audio</th>
+                            <th style="color:#00ccff">Combined</th>
                         </tr></thead><tbody>`;
-                    html += renderRow('Попыток', visualStats?.count, audioStats?.count, combinedStats.count, '');
-                    html += renderRow('Лучший', visualStats?.best, audioStats?.best, combinedStats.best);
-                    html += renderRow('Средний', visualStats?.avg, audioStats?.avg, combinedStats.avg);
-                    html += renderRow('Медиана', visualStats?.median, audioStats?.median, combinedStats.median);
-                    html += renderRow('Отклонение', visualStats?.stdDev, audioStats?.stdDev, combinedStats.stdDev);
+                    html += renderRow('Attempts', visualStats?.count, audioStats?.count, combinedStats.count, '');
+                    html += renderRow('Best', visualStats?.best, audioStats?.best, combinedStats.best);
+                    html += renderRow('Average', visualStats?.avg, audioStats?.avg, combinedStats.avg);
+                    html += renderRow('Median', visualStats?.median, audioStats?.median, combinedStats.median);
+                    html += renderRow('Std Dev', visualStats?.stdDev, audioStats?.stdDev, combinedStats.stdDev);
                     html += renderRow('P25', visualStats?.p25, audioStats?.p25, combinedStats.p25);
                     html += renderRow('P75', visualStats?.p75, audioStats?.p75, combinedStats.p75);
                     html += renderRow('P10', visualStats?.p10, audioStats?.p10, combinedStats.p10);
                     html += renderRow('P90', visualStats?.p90, audioStats?.p90, combinedStats.p90);
-                    html += renderRow('Последний', visualStats?.last, audioStats?.last, combinedStats.last);
+                    html += renderRow('Last', visualStats?.last, audioStats?.last, combinedStats.last);
                     html += `</tbody></table>`;
                     
-                    this.periodStatsTitle.textContent = 'Сравнение режимов';
+                    this.periodStatsTitle.textContent = 'Mode comparison';
                     this.periodStatsBody.innerHTML = html;
                     
-                    this.globalHistogramTitle.textContent = 'Распределение результатов за период (все режимы)';
+                    this.globalHistogramTitle.textContent = 'Result distribution for the period (all modes)';
                     this.renderGlobalHistogram(combinedTimes);
                     return;
                 }
                 
                 const times = filterMode === 'visual' ? visualTimes : audioTimes;
-                const modeLabel = filterMode === 'visual' ? 'Визуальный' : 'Звуковой';
+                const modeLabel = filterMode === 'visual' ? 'Visual' : 'Audio';
                 const stats = this.computeStatsForTimes(times);
                 
                 if (!stats) {
-                    this.periodStatsTitle.textContent = `Детальная статистика — ${modeLabel}`;
-                    this.periodStatsBody.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">Нет данных за выбранный период</div>';
+                    this.periodStatsTitle.textContent = `Detailed statistics — ${modeLabel}`;
+                    this.periodStatsBody.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No data for the selected period</div>';
                     this.globalHistogramBars.innerHTML = '';
                     this.globalHistogramLabels.innerHTML = '';
-                    this.globalHistogramTitle.textContent = `Распределение результатов за период — ${modeLabel}`;
+                    this.globalHistogramTitle.textContent = `Result distribution for the period — ${modeLabel}`;
                     return;
                 }
                 
@@ -2033,55 +2055,55 @@
                 
                 let html = `
                     <div class="period-stat-item">
-                        <span class="period-stat-label">Период:</span>
+                        <span class="period-stat-label">Period:</span>
                         <span class="period-stat-value">${periodLabel}</span>
                     </div>
                     <div class="period-stat-item">
-                        <span class="period-stat-label">Режим:</span>
+                        <span class="period-stat-label">Mode:</span>
                         <span class="period-stat-value">${modeLabel}</span>
                     </div>
                     <div class="period-stat-item">
-                        <span class="period-stat-label">Попыток:</span>
+                        <span class="period-stat-label">Attempts:</span>
                         <span class="period-stat-value">${stats.count}</span>
                     </div>
                     <div class="period-stat-item">
-                        <span class="period-stat-label">Активных дней:</span>
+                        <span class="period-stat-label">Active days:</span>
                         <span class="period-stat-value">${uniqueDays}</span>
                     </div>
                     <div class="period-stat-item">
-                        <span class="period-stat-label">Лучший:</span>
-                        <span class="period-stat-value">${stats.best.toFixed(0)} мс</span>
+                        <span class="period-stat-label">Best:</span>
+                        <span class="period-stat-value">${stats.best.toFixed(0)} ms</span>
                     </div>
                     <div class="period-stat-item">
-                        <span class="period-stat-label">Средний:</span>
-                        <span class="period-stat-value">${stats.avg.toFixed(0)} мс</span>
+                        <span class="period-stat-label">Average:</span>
+                        <span class="period-stat-value">${stats.avg.toFixed(0)} ms</span>
                     </div>
                     <div class="period-stat-item">
-                        <span class="period-stat-label">Медиана:</span>
-                        <span class="period-stat-value">${stats.median.toFixed(0)} мс</span>
+                        <span class="period-stat-label">Median:</span>
+                        <span class="period-stat-value">${stats.median.toFixed(0)} ms</span>
                     </div>
                     <div class="period-stat-item">
-                        <span class="period-stat-label">Отклонение:</span>
-                        <span class="period-stat-value">${stats.stdDev.toFixed(0)} мс</span>
+                        <span class="period-stat-label">Std Dev:</span>
+                        <span class="period-stat-value">${stats.stdDev.toFixed(0)} ms</span>
                     </div>
                     <div class="period-stat-item">
                         <span class="period-stat-label">P25 / P75:</span>
-                        <span class="period-stat-value">${stats.p25.toFixed(0)} / ${stats.p75.toFixed(0)} мс</span>
+                        <span class="period-stat-value">${stats.p25.toFixed(0)} / ${stats.p75.toFixed(0)} ms</span>
                     </div>
                     <div class="period-stat-item">
                         <span class="period-stat-label">P10 / P90:</span>
-                        <span class="period-stat-value">${stats.p10.toFixed(0)} / ${stats.p90.toFixed(0)} мс</span>
+                        <span class="period-stat-value">${stats.p10.toFixed(0)} / ${stats.p90.toFixed(0)} ms</span>
                     </div>
                     <div class="period-stat-item">
-                        <span class="period-stat-label">Последний:</span>
-                        <span class="period-stat-value">${stats.last.toFixed(0)} мс</span>
+                        <span class="period-stat-label">Last:</span>
+                        <span class="period-stat-value">${stats.last.toFixed(0)} ms</span>
                     </div>
                 `;
                 
-                this.periodStatsTitle.textContent = `Детальная статистика — ${modeLabel}`;
+                this.periodStatsTitle.textContent = `Detailed statistics — ${modeLabel}`;
                 this.periodStatsBody.innerHTML = html;
                 
-                this.globalHistogramTitle.textContent = `Распределение результатов за период — ${modeLabel}`;
+                this.globalHistogramTitle.textContent = `Result distribution for the period — ${modeLabel}`;
                 this.renderGlobalHistogram(times);
             }
 
@@ -2108,7 +2130,7 @@
                 
                 this.globalHistogramBars.innerHTML = counts.map((c, i) => {
                     const height = (c / maxCount) * 100;
-                    return `<div class="histogram-bar" style="height:${height}%;background:${p.ready}" title="${histogramBins[i].label} мс: ${c}">
+                    return `<div class="histogram-bar" style="height:${height}%;background:${p.ready}" title="${histogramBins[i].label} ms: ${c}">
                         ${c > 0 ? `<div class="histogram-bar-count">${c}</div>` : ''}
                     </div>`;
                 }).join('');
@@ -2126,8 +2148,8 @@
                     const avg = times.reduce((a, b) => a + b, 0) / times.length;
                     const stdDev = Utils.calculateStdDev(times, avg);
                     
-                    this.globalAvgResult.textContent = `${avg.toFixed(0)} мс`;
-                    this.globalStdDevResult.textContent = stdDev !== null ? `${stdDev.toFixed(0)} мс` : '-';
+                    this.globalAvgResult.textContent = `${avg.toFixed(0)} ms`;
+                    this.globalStdDevResult.textContent = stdDev !== null ? `${stdDev.toFixed(0)} ms` : '-';
                     
                     const uniqueDates = new Set(allResults.map(r => Utils.getDateKey(r.timestamp)));
                     this.globalActiveDays.textContent = uniqueDates.size;
@@ -2162,7 +2184,7 @@
                 }
                 
                 if (results.length === 0) {
-                    alert('Нет данных для экспорта.');
+                    alert('No data to export.');
                     return;
                 }
                 let csv = 'timestamp,iso_datetime,local_datetime,reaction_time_ms,mode\n';
@@ -2184,7 +2206,7 @@
                         const text = evt.target.result;
                         const lines = text.split(/\r?\n/).filter(l => l.trim());
                         if (lines.length < 2) {
-                            alert('Файл пуст или не содержит данных.');
+                            alert('The file is empty or contains no data.');
                             return;
                         }
                         const mode = this.getMode();
@@ -2205,9 +2227,9 @@
                         this.saveAllResults(mode);
                         this.updateGlobalModalModeCounts();
                         this.updateGlobalStatsSummary();
-                        alert(`Импортировано результатов: ${imported}`);
+                        alert(`Imported results: ${imported}`);
                     } catch (err) {
-                        alert('Ошибка импорта: ' + err.message);
+                        alert('Import error: ' + err.message);
                     }
                     e.target.value = '';
                 };
@@ -2279,7 +2301,7 @@
                 this.updateGlobalModalModeCounts();
                 this.updateGlobalStatsSummary();
                 this.updateDailyPanel();
-                alert('Все данные успешно удалены.');
+                alert('All data has been successfully deleted.');
                 if (this.globalStatsModal.classList.contains('visible')) {
                     this.calculateGlobalStatistics();
                 }
@@ -2287,7 +2309,7 @@
 
             saveCustomThemeAndApply() {
                 PALETTES.custom = {
-                    name: 'Своя тема',
+                    name: 'Custom Theme',
                     wait: this.customWait.value,
                     ready: this.customReady.value,
                     early: this.customEarly.value,
@@ -2309,8 +2331,9 @@
                 const p = this.getCurrentPalette();
                 this.reactionTest.className = 'too-early';
                 this.reactionTest.style.backgroundColor = p.early;
-                this.message.textContent = 'Слишком рано! Нажмите для новой попытки';
+                this.message.textContent = 'Too early! Click for a new attempt';
                 this.message.style.color = Utils.getTextColor(p.early);
+                this.setWatermarkColor(Utils.getTextColor(p.early));
                 this.result.style.display = 'none';
             }
 
@@ -2318,9 +2341,10 @@
                 const p = this.getCurrentPalette();
                 this.reactionTest.className = '';
                 this.reactionTest.style.backgroundColor = p.idle;
-                this.message.textContent = 'Нажмите для следующего';
+                this.message.textContent = 'Click to continue';
                 this.message.style.color = Utils.getTextColor(p.idle);
-                this.result.textContent = `${time.toFixed(0)} мс`;
+                this.setWatermarkColor(Utils.getTextColor(p.idle));
+                this.result.textContent = `${time.toFixed(0)} ms`;
                 this.result.style.display = 'block';
                 this.result.style.color = Utils.getTextColor(p.idle);
             }
@@ -2345,7 +2369,7 @@
 
                 this.histogramBars.innerHTML = counts.map((c, i) => {
                     const height = (c / maxCount) * 100;
-                    return `<div class="histogram-bar" style="height:${height}%;background:${p.ready}" title="${histogramBins[i].label} мс: ${c}">
+                    return `<div class="histogram-bar" style="height:${height}%;background:${p.ready}" title="${histogramBins[i].label} ms: ${c}">
                         ${c > 0 ? `<div class="histogram-bar-count">${c}</div>` : ''}
                     </div>`;
                 }).join('');
@@ -2403,7 +2427,7 @@
             resetSession() {
                 const mode = this.getMode();
                 if (this.data[mode].sessionResults.length === 0) {
-                    alert('Нет данных сессии для сброса.');
+                    alert('No session data to reset.');
                     return;
                 }
                 this.data[mode].sessionResults = [];
