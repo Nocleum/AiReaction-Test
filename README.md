@@ -52,7 +52,7 @@
 
 Because it's a single file, there is **no build step, no npm install, and no server required**.
 
-1. Download `reaction_test.html` (or clone this repository).
+1. Download `index.html` (or clone this repository).
 2. Double-click the file to open it in any modern web browser (Chrome, Firefox, Safari, Edge).
 3. Click the main screen (or press `Space`) to begin.
 4. Wait for the signal and react as fast as you can!
