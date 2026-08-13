@@ -90,6 +90,7 @@ Because it's a single file, there is **no build step, no npm install, and no ser
 
 ```text
 📁 AiReaction-Test
+ ┣ 📄 README.md   # This file
  ┣ 📄 reaction_test.html   # The entire application
  ┗ 📁 screenshots/         # Images for this README
     ┣ 🖼️ main-interface.png
