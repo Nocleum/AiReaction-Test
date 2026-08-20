@@ -27,7 +27,7 @@
 
 <p align="center">
   <a href="https://nocleum.github.io/AiReaction-Test/">
-    <img src="./screenshots/main-interface.png" alt="AiReaction Test Main Interface" width="720">
+    <img src="./screenshots/main-interface_v2.png" alt="AiReaction Test Main Interface" width="720">
   </a>
 </p>
 
