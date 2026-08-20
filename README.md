@@ -220,7 +220,7 @@ AiReaction-Test
 ├── README.md            # This document
 ├── index.html           # The entire application
 └── screenshots/         # Images used in this README
-    ├── main-interface.png
+    ├── main-interface_vX.png
     └── global-stats.png
 ```
 
