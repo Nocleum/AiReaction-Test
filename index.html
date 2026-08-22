@@ -2058,14 +2058,7 @@ updateModeVisibility() {
             el.classList.toggle('hidden', required !== mode);
         }
     });
-    // For audio mode, force zone to 100% and update UI
-    if (mode === 'audio') {
-        this.zoneWidth = 100;
-        this.zoneHeight = 100;
-        this.applyZoneSize();
-        if(this.zoneWidthValue) this.zoneWidthValue.textContent = '100%';
-        if(this.zoneHeightValue) this.zoneHeightValue.textContent = '100%';
-    }
+    this.applyZoneSize();
 }
 applyZoneSize() {
     const mode = this.getMode();
@@ -2073,10 +2066,14 @@ applyZoneSize() {
         // Audio mode: always 100%
         this.visualZone.style.setProperty('--zone-width', '100%');
         this.visualZone.style.setProperty('--zone-height', '100%');
+        if(this.zoneWidthValue) this.zoneWidthValue.textContent = '100%';
+        if(this.zoneHeightValue) this.zoneHeightValue.textContent = '100%';
     } else {
         // Visual mode: use configured values
         this.visualZone.style.setProperty('--zone-width', this.zoneWidth + '%');
         this.visualZone.style.setProperty('--zone-height', this.zoneHeight + '%');
+        if(this.zoneWidthValue) this.zoneWidthValue.textContent = this.zoneWidth + '%';
+        if(this.zoneHeightValue) this.zoneHeightValue.textContent = this.zoneHeight + '%';
     }
 }
 getCurrentPalette() { return PALETTES[this.currentPalette]; }
